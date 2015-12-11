@@ -307,13 +307,6 @@ function Game:updateSpeed()
 	self:initFallingTimer()
 end
 
-
-function Game:start()
-	self:reset()
-	self:initFallingTimer()
-	self.state.condition = StateConditions.RUNNING
-end
-
 function Game:togglePause()
 	if self.state.fallingTimer then
 		self:pause()
@@ -328,19 +321,20 @@ function Game:pause()
 		killTimer(self.state.fallingTimer)
 		self.state.fallingTimer = nil
 	end
+  stopMusic()
 end
 
 function Game:resume()
-	self.state.condition = StateConditions.RUNNING
 	self:initFallingTimer()
+  self.state.condition = StateConditions.RUNNING
+  startMusic()
 end
 
 function Game:resumeOrStart()
-	if self.state.activeTetromino then
-		self:resume()
-	else
-		self:start()
-	end
+  if not self.state.activeTetromino then
+    self:reset()
+  end
+  self:resume()
 end
 
 

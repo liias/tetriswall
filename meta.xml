@@ -6,6 +6,7 @@
 	<script src="client/camera.lua" type="client" />
 	<script src="client/constants.lua" type="client" />
 	<script src="client/utils.lua" type="client" />
+  <script src="client/audio.lua" type="client" />
 	<script src="client/tetrominos.lua" type="client" />
 	<script src="client/grid.lua" type="client" />
 	<script src="client/game.lua" type="client" />
@@ -19,4 +20,7 @@
   
 	<file src="client/shaders/texture_replace.fx" type="client" />
   <file src="client/shaders/blip_texture_replace.fx" type="client" />
+  
+  <file src="client/audio/music/fast1.mp3" type="client" />
+  <file src="client/audio/music/fast2.mp3" type="client" />
 </meta>

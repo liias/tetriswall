@@ -33,6 +33,7 @@ addEventHandler("onClientResourceStop", resourceRoot,
     end
 );
 
+local isLocalPlayerInMarker = false
 local isRunning = false
 
 function setupMarker(game)
@@ -40,21 +41,29 @@ function setupMarker(game)
 
 	local cameraMover = CameraMover:new()
 
+  function stopTetris()
+    isRunning = false
+    game.drawing:removeIntroduction()
+    game.drawing:addIntroduction("Tetris paused. Press " .. START_STOP_KEY_NAME .. " to resume.")
+    game:stopTetris()
+    toggleAllControls(true, true, false)
+    cameraMover:cancelMovement()
+    setCameraTarget(localPlayer)
+  end
+  
+  function startTetris()
+    isRunning = true
+    toggleAllControls(false, true, false)
+    game.drawing:removeIntroduction()
+    game:startTetris()
+    cameraMover:moveCamera(2501, -1659, 15.5, 2505, -1653, 15.3, 700, "OutQuad")
+  end
+  
 	function startOrStopTetris(key, keyState)
 		if isRunning then
-			isRunning = false
-			game.drawing:removeIntroduction()
-			game.drawing:addIntroduction("Tetris paused. Press " .. START_STOP_KEY_NAME .. " to resume.")
-			game:stopTetris()
-			toggleAllControls(true, true, false)
-			cameraMover:cancelMovement()
-			setCameraTarget(localPlayer)
+			stopTetris()
 		else
-			isRunning = true
-			toggleAllControls(false, true, false)
-			game.drawing:removeIntroduction()
-			game:startTetris()
-			cameraMover:moveCamera(2501, -1659, 15.5, 2505, -1653, 15.3, 700, "OutQuad")
+			startTetris()
 		end
 	end
 
@@ -73,6 +82,7 @@ function setupMarker(game)
 			return
 		end
 
+    isLocalPlayerInMarker = true
 		bindKey(START_STOP_KEY, "down", startOrStopTetris)
 		local txt
 		if game.state.condition == StateConditions.PAUSED then
@@ -93,12 +103,21 @@ function setupMarker(game)
 			log("tetrisMarkerLeave: game is nil")
 			return
 		end
-
+    isLocalPlayerInMarker = false
 		unbindKey(START_STOP_KEY, "down", startOrStopTetris)
 		game.drawing:removeIntroduction()
 	end
 	addEventHandler("onClientMarkerLeave", marker, tetrisMarkerLeave)
 
+  function localPlayerWasted(killer, weapon, bodypart)
+    if isRunning then
+      stopTetris()
+    end
+    if isLocalPlayerInMarker then
+      tetrisMarkerLeave(localPlayer, true)
+    end
+  end
+  addEventHandler("onClientPlayerWasted", localPlayer, localPlayerWasted)
 end
 
 function replaceBlipTexture(textureName)
