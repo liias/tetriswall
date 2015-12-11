@@ -60,9 +60,8 @@ function setupMarker(game)
 
 	local marker = createMarker(markerX, markerY, markerZ, "cylinder", 1.0, 132, 4, 16, 200)
 
-	-- Toreno_ranch 
-	createBlipAttachedTo(marker, 42)
-	--createBlip(markerX, markerY, markerZ , 42, 2, 0, 0, 255, 225, 0)
+  replaceBlipTexture("radar_TorenoRanch")
+	createBlipAttachedTo(marker, 42) 	-- Toreno_ranch 
 
 	function tetrisMarkerHit(hitPlayer, matchingDimension)
 		if hitPlayer ~= localPlayer or not matchingDimension then
@@ -100,6 +99,13 @@ function setupMarker(game)
 	end
 	addEventHandler("onClientMarkerLeave", marker, tetrisMarkerLeave)
 
+end
+
+function replaceBlipTexture(textureName)
+	local textureReplaceShader = dxCreateShader("client/shaders/blip_texture_replace.fx", 0, 0, false, "world")
+	local texture = dxCreateTexture("client/img/blip_tetris.png")
+	dxSetShaderValue(textureReplaceShader, "gTexture", texture)
+	engineApplyShaderToWorldTexture(textureReplaceShader, textureName)
 end
 
 addEventHandler("onClientResourceStart", resourceRoot, startGame)
