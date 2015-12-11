@@ -23,6 +23,7 @@ Bindings = {
 	DOWN = "arrow_d",
 	HARD_DROP = "space",
 	ROTATE = "arrow_u",
+  HOLD = "lshift",
 	RESET = "r",
 	PAUSE = "l"
 }
@@ -76,6 +77,9 @@ function Controller:rotate()
 	self.game:rotateRight()
 end
 
+function Controller:hold()
+  self.game:holdCurrentTetromino()
+end
 
 function Controller:reset()
 	self.game:reset()
@@ -113,6 +117,9 @@ function Controller:bindControls()
 	self.bindFuncs.rotate = function(key, keyState) 
 		self:rotate()
 	end
+  self.bindFuncs.hold = function(key, keyState) 
+		self:hold()
+	end
 	self.bindFuncs.reset = function(key, keyState) 
 		self:reset()
 	end
@@ -126,16 +133,20 @@ function Controller:bindControls()
 
 	bindKey(Bindings.HARD_DROP, "down", self.bindFuncs.hardDrop)
 	bindKey(Bindings.ROTATE, "down", self.bindFuncs.rotate)
+  
+  bindKey(Bindings.HOLD, "down", self.bindFuncs.hold)
 	bindKey(Bindings.RESET, "down", self.bindFuncs.reset)
 	bindKey(Bindings.PAUSE, "down", self.bindFuncs.pause)
 end
 
 function Controller:unbindControls()
+  -- TODO: try unbinding "both" instead of "down" for L R D
 	unbindKey(Bindings.LEFT, "down", self.bindFuncs.left)
 	unbindKey(Bindings.RIGHT, "down", self.bindFuncs.right)
 	unbindKey(Bindings.DOWN, "down", self.bindFuncs.down)
 	unbindKey(Bindings.HARD_DROP, "down", self.bindFuncs.hardDrop)
 	unbindKey(Bindings.ROTATE, "down", self.bindFuncs.rotate)
+  unbindKey(Bindings.HOLD, "down", self.bindFuncs.reset)
 	unbindKey(Bindings.RESET, "down", self.bindFuncs.reset)
 	unbindKey(Bindings.PAUSE, "down", self.bindFuncs.pause)
 end

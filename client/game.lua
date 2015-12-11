@@ -20,6 +20,8 @@ Game = {
 		activeTetromino = false,
 		fallingTimer = nil,
 		nextTetrominoIds = {},
+    heldTetrominoId = nil,
+    heldTetrominoInRound = false,
 		score = 0,
 		clearedLines = 0,
 		level = 0,
@@ -195,7 +197,7 @@ function Game:handleLanding()
 		local removeRowsAndGiveNewTetromino = function()
 			--log("animation completed, giving new tetromino")
 			self.state.grid:removeRows(filledLines)
-			self:giveNewTetromino()
+			self:giveNewTetromino(true)
 		end
 		self.drawing:flashRemovableRows(filledLines, removeRowsAndGiveNewTetromino)
 		if numberOfFilledLines == 4 then
@@ -203,7 +205,7 @@ function Game:handleLanding()
 		end
 	else
 		--log("no filled lines, giving new tetromino")
-		self:giveNewTetromino()
+		self:giveNewTetromino(true)
 	end
 end
 
@@ -240,10 +242,15 @@ function Game:spawnById(id)
 end
 
 
-function Game:giveNewTetromino()
+function Game:giveNewTetromino(resetHeldTetrominoUsed)
 	local nextTetrominoId = table.remove(self.state.nextTetrominoIds, 1)
 	self:addRandomTetrominoIdToQueue()
 	self:spawnById(nextTetrominoId)
+  
+  if resetHeldTetrominoUsed then
+    -- allow holding (or switching) again (once per round)
+    self.state.heldTetrominoInRound = false
+  end
 end
 
 function Game:addRandomTetrominoIdToQueue()
@@ -254,6 +261,27 @@ end
 function Game:generateRandomTetrominoIds(n)
 	for i=1, n do
 		self:addRandomTetrominoIdToQueue()
+	end
+end
+
+function Game:setHeldTetrominoId(tetrominoId)
+  self.state.heldTetrominoId = tetrominoId
+  self.state.heldTetrominoInRound = true
+end
+
+function Game:holdCurrentTetromino()
+  if self.state.activeTetromino then
+    if self.state.heldTetrominoInRound then
+      self.drawing:startTetrominoAlreadyHeld()
+    else
+      local tetrominoIdHeldBefore = self.state.heldTetrominoId
+      self:setHeldTetrominoId(self.state.activeTetromino.id)
+      if tetrominoIdHeldBefore then
+        self:spawnById(tetrominoIdHeldBefore)
+      else
+        self:giveNewTetromino(false)
+      end
+    end
 	end
 end
 
@@ -268,7 +296,7 @@ function Game:reset()
 	end
 	self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
 
-	self:giveNewTetromino()
+	self:giveNewTetromino(true)
 end
 
 function Game:updateSpeed()

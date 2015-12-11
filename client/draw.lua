@@ -59,6 +59,45 @@ function Drawing:drawFourRowsClear()
 	dxDrawText("Tetris!", x, y, x, y, white, 3)
 end
 
+function Drawing:drawTetrominoQueue(nextTetrominoIds)
+	local nextTetrominoId = nextTetrominoIds[1]
+	local tetromino = IdTetrominoClassMap[nextTetrominoId]
+  self:drawTextAndTetromino(tetromino, 11, 2, "next")
+end
+
+function Drawing:drawHeldTetromino(tetrominoId)
+  local tetromino = nil
+  if tetrominoId then
+    tetromino = IdTetrominoClassMap[tetrominoId]
+  end  
+  self:drawTextAndTetromino(tetromino, 11, 14, "hold")
+end
+
+function Drawing:startTetrominoAlreadyHeld()
+	-- alternatively could set highlightedEndTime and highlightedCallback
+	-- 200 + 200 + 200 + 200 + 100
+	self:drawForPeriod("drawTetrominoAlreadyHeld", nil, 800)
+end
+
+function Drawing:drawTetrominoAlreadyHeld()
+	local x = self.board.x + self.board.width/2 - 40
+	local y = self.board.y + self.board.height/2 - 5
+	dxDrawText("Holding already used!", x, y, x, y, white, 1)
+end
+
+
+function Drawing:drawTextAndTetromino(tetromino, xOffset, yOffset, text)
+  local length = self.board.rectangle.length
+	local textX = self.board.tetrominoX+xOffset*length
+	local textY = self.board.tetrominoY+(yOffset-1)*length
+  
+  dxDrawText(text, textX, textY, textX, textY, white)
+  
+  if tetromino then
+    local shape = tetromino:getActiveShape()
+    self:drawShapeAtOffset(shape, tetromino.color, xOffset, yOffset+2)
+  end
+end
 
 function Drawing:drawButtons()
 	local x = self.board.x + self.board.width + 10
@@ -70,6 +109,7 @@ function Drawing:drawButtons()
 	Hard drop: space
 	Pause: L
 	Restart: R
+	Hold: left shift
 	Exit: ]] .. START_STOP_KEY_NAME
 	dxDrawText(manual, x, y, x, y, white, 1.5)
 end
@@ -176,25 +216,14 @@ function Drawing:drawFallingTetromino(tetromino)
 	self:drawShapeAtOffset(shape, tetromino.color, xOffset, yOffset)
 end
 
-function Drawing:drawTetrominoQueue(nextTetrominoIds)
-	local nextTetrominoId = nextTetrominoIds[1]
-	local tetromino = IdTetrominoClassMap[nextTetrominoId]
-	local shape = tetromino:getActiveShape()
-	local xOffset = 11
-	local yOffset = 2
-
-	local length = self.board.rectangle.length
-	local textX = self.board.tetrominoX+xOffset*length
-	local textY = self.board.tetrominoY+(yOffset-1)*length
-	
-	dxDrawText("next", textX, textY, textX, textY, white)
-	self:drawShapeAtOffset(shape, tetromino.color, xOffset, yOffset+2)
-end
-
 function Drawing:drawCurrentState()
 	self:drawBackground()
 	self:drawScore()
 	self:drawButtons()
+
+  self:drawHeldTetromino(self.state.heldTetrominoId)
+
+  self:drawTetrominoQueue(self.state.nextTetrominoIds)
 
 	if self.periodStartTimes.drawHardDropEffect ~= nil then
 		self:drawHardDrop()
@@ -209,8 +238,10 @@ function Drawing:drawCurrentState()
 	if self.periodStartTimes.drawFourRowsClear ~= nil then
 		self:drawFourRowsClear()
 	end
-
-	self:drawTetrominoQueue(self.state.nextTetrominoIds)
+  
+  if self.periodStartTimes.drawTetrominoAlreadyHeld ~= nil then
+		self:drawTetrominoAlreadyHeld()
+	end
 
 	if self.gameOver then
 		self:drawGameOver()
@@ -263,7 +294,6 @@ end
 
 -- pulses from 255 to 0 in maxMs, and back from 0 to 255 in maxMs, so full pulse takes 2*maxMs
 function getAnimAlpha(animationCurrentDuration, maxMs)
-	local toZero = maxMs
 	local backToFull = 2 * maxMs
 	local r = 255/maxMs
 	local zeroToDoubleMaxMs = animationCurrentDuration % backToFull
@@ -339,7 +369,7 @@ end
 function Drawing:initDrawing(textureName, targetObject)
 	self:initDimensions(0, 0)
 	-- 500, 1700 = 1:3,4
-	self.tetrisRenderTarget = dxCreateRenderTarget(500, 1700, true)
+	self.tetrisRenderTarget = dxCreateRenderTarget(500, 1850, true)
 	initShader(self.tetrisRenderTarget, textureName, targetObject)
 
 	-- draw come play until tetris has been started
