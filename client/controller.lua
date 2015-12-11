@@ -133,20 +133,19 @@ function Controller:bindControls()
 
 	bindKey(Bindings.HARD_DROP, "down", self.bindFuncs.hardDrop)
 	bindKey(Bindings.ROTATE, "down", self.bindFuncs.rotate)
-  
   bindKey(Bindings.HOLD, "down", self.bindFuncs.hold)
 	bindKey(Bindings.RESET, "down", self.bindFuncs.reset)
 	bindKey(Bindings.PAUSE, "down", self.bindFuncs.pause)
 end
 
 function Controller:unbindControls()
-  -- TODO: try unbinding "both" instead of "down" for L R D
-	unbindKey(Bindings.LEFT, "down", self.bindFuncs.left)
-	unbindKey(Bindings.RIGHT, "down", self.bindFuncs.right)
-	unbindKey(Bindings.DOWN, "down", self.bindFuncs.down)
+	unbindKey(Bindings.LEFT, "both", self.bindFuncs.left)
+	unbindKey(Bindings.RIGHT, "both", self.bindFuncs.right)
+	unbindKey(Bindings.DOWN, "both", self.bindFuncs.down)
+  
 	unbindKey(Bindings.HARD_DROP, "down", self.bindFuncs.hardDrop)
 	unbindKey(Bindings.ROTATE, "down", self.bindFuncs.rotate)
-  unbindKey(Bindings.HOLD, "down", self.bindFuncs.reset)
+  unbindKey(Bindings.HOLD, "down", self.bindFuncs.hold)
 	unbindKey(Bindings.RESET, "down", self.bindFuncs.reset)
 	unbindKey(Bindings.PAUSE, "down", self.bindFuncs.pause)
 end
