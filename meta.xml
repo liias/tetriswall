@@ -1,0 +1,19 @@
+<meta>
+	<info name="Tetris Wall" description="Tetris Wall" author="Madis" type="script" version="0.1.7" />
+	<!-- Min MTA to set render target at any time -->
+	<min_mta_version client="1.3.0-9.04431" />
+
+	<script src="client/camera.lua" type="client" />
+	<script src="client/constants.lua" type="client" />
+	<script src="client/utils.lua" type="client" />
+	<script src="client/tetrominos.lua" type="client" />
+	<script src="client/grid.lua" type="client" />
+	<script src="client/game.lua" type="client" />
+	<script src="client/controller.lua" type="client" />
+	<script src="client/draw.lua" type="client" />
+	<script src="client/main.lua" type="client" />
+
+	<file src="client/img/grid322x642.png" type="client" />
+	<file src="client/img/tetrominopiece32.png" type="client" />
+	<file src="client/shaders/texture_replace.fx" type="client" />
+</meta>
