@@ -25,4 +25,8 @@
   <file src="client/audio/music/fast2.mp3" type="client" />
   
   <file src="client/audio/sfx/move.wav" type="client" />
+  <file src="client/audio/sfx/rotate.wav" type="client" />
+  <file src="client/audio/sfx/harddrop.wav" type="client" />
+  <file src="client/audio/sfx/hold.wav" type="client" />
+  <file src="client/audio/sfx/theend.wav" type="client" />
 </meta>

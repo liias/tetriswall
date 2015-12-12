@@ -51,23 +51,31 @@ function Game:move(columnOffset, rowOffset, rotate)
 	end
 	local row = t.yOffset+rowOffset
 	local column = t.xOffset+columnOffset
-	self:setShapeAndPosition(rotationIndex, row, column)
+	return self:setShapeAndPosition(rotationIndex, row, column)
 end
-
-function Game:moveDown()
-	self:move(0, 1)
+-- todo autom korral mitte
+function Game:moveDown(noSound)
+	if self:move(0, 1) and not noSound then
+    playAudioMove()
+  end  
 end
 
 function Game:moveLeft()
-	self:move(-1, 0)
+	if self:move(-1, 0) then
+    playAudioMove()
+  end
 end
 
 function Game:moveRight()
-	self:move(1, 0)
+	if self:move(1, 0) then
+    playAudioMove()
+  end
 end
 
 function Game:rotateRight()
-	self:move(0, 0, true)
+	if self:move(0, 0, true) then
+    playAudioRotate()
+  end
 end
 
 function Game:hardDrop()
@@ -85,6 +93,7 @@ function Game:hardDrop()
 	if wasDropped then
 		self.drawing:drawHardDropEffect(t, originalYOffset)
 		self:tryLanding()
+    playAudioHardDrop()
 	else
 		log("ok, hard drop failed. how can that happen?")
 	end
@@ -211,7 +220,7 @@ end
 
 function Game:fallingTick()
 	self:tryLanding()
-	self:moveDown()
+	self:moveDown(true)
 end
 
 function Game:initFallingTimer()
@@ -234,7 +243,7 @@ function Game:spawnById(id)
 	if not self.state.grid:checkForCollision(t:getActiveShape(), t.yOffset, t.xOffset) then
 		self.drawing:setGameOver(true)
 		outputChatBox("Tetris: GAME OVER! Press R to restart the game")
-		--log("cant move already in the beginning. todo: End the game")
+    playAudioTheEnd()
 		return false
 	end
 
@@ -281,6 +290,7 @@ function Game:holdCurrentTetromino()
       else
         self:giveNewTetromino(false)
       end
+      playAudioHold()
     end
 	end
 end
@@ -288,7 +298,13 @@ end
 function Game:reset()
 	self.drawing:setGameOver(false)
 
+  self.state.heldTetrominoId = nil
 	self.state.score = 0
+  self.state.clearedLines = 0
+  self.state.level = 0
+  self.state.speed = 800
+  self.state.linesForNextLevel = Settings.linesForNewLevel
+  
 	self:generateRandomTetrominoIds(2)
 
 	if self.state.activeTetromino then

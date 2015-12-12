@@ -90,19 +90,15 @@ function Controller:pause()
 end
 
 
-local function playAudioMove()
-  playAudioSfx("client/audio/sfx/move.wav")
-end
+
 
 -- repeatable functions, used by setTimer
 function Controller:initNameFunctionMap() 
 	GlobalMaps.nameFunctionMap = {
 		moveLeft = function() 
-      playAudioMove()
       self.game:moveLeft() 
     end,
 		moveRight = function()
-      playAudioMove()
       self.game:moveRight() 
     end,
 		moveDown = function() 

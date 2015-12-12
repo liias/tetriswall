@@ -15,8 +15,26 @@ function stopMusic()
   end
 end
 
-
 function playAudioSfx(soundPath)
   playSound(soundPath)
 end
 
+function playAudioMove()
+  playAudioSfx("client/audio/sfx/move.wav")
+end
+
+function playAudioRotate()
+  playAudioSfx("client/audio/sfx/rotate.wav")
+end
+
+function playAudioHardDrop()
+  playAudioSfx("client/audio/sfx/harddrop.wav")
+end
+
+function playAudioHold()
+  playAudioSfx("client/audio/sfx/hold.wav")
+end
+
+function playAudioTheEnd()
+  playAudioSfx("client/audio/sfx/theend.wav")
+end
