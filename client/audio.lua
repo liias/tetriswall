@@ -14,3 +14,9 @@ function stopMusic()
     stopSound(backgroundMusic)
   end
 end
+
+
+function playAudioSfx(soundPath)
+  playSound(soundPath)
+end
+

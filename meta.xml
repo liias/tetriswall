@@ -23,4 +23,6 @@
   
   <file src="client/audio/music/fast1.mp3" type="client" />
   <file src="client/audio/music/fast2.mp3" type="client" />
+  
+  <file src="client/audio/sfx/move.wav" type="client" />
 </meta>
