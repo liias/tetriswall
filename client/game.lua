@@ -144,7 +144,7 @@ function Game:setLevelFromClearedLines()
 
 	if self.state.level ~= oldLevel then
 		self.state.speed = self:getSpeedForLevel(self.state.level)
-		self:updateSpeed()
+		self:initFallingTimer()
 	end
 end
 
@@ -224,6 +224,11 @@ function Game:fallingTick()
 end
 
 function Game:initFallingTimer()
+  if self.state.fallingTimer then
+		killTimer(self.state.fallingTimer)
+		self.state.fallingTimer = nil
+	end
+  
 	local tickFunc = function()
 		self:fallingTick()
 	end
@@ -304,6 +309,7 @@ function Game:reset()
   self.state.level = 0
   self.state.speed = 800
   self.state.linesForNextLevel = Settings.linesForNewLevel
+  self:initFallingTimer()
   
 	self:generateRandomTetrominoIds(2)
 
@@ -313,14 +319,6 @@ function Game:reset()
 	self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
 
 	self:giveNewTetromino(true)
-end
-
-function Game:updateSpeed()
-	if self.state.fallingTimer then
-		killTimer(self.state.fallingTimer)
-		self.state.fallingTimer = nil
-	end
-	self:initFallingTimer()
 end
 
 function Game:togglePause()

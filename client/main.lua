@@ -94,6 +94,13 @@ function setupMarker(game)
 
 	end
 	addEventHandler("onClientMarkerHit", marker, tetrisMarkerHit)
+  
+  -- when (re)starting tetriswall and player is already inside marker, 
+  -- there would be no markerHit event, so calling it manually
+  -- btw, the radius is way too large atm for marker with this method, but let it be
+  if isElementWithinMarker(localPlayer, marker) then
+    tetrisMarkerHit(localPlayer, true)
+  end
 
 	function tetrisMarkerLeave(leavePlayer, matchingDimension)
 		if leavePlayer ~= localPlayer or not matchingDimension then
