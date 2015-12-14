@@ -39,19 +39,50 @@ function Game:new(o)
 	return o
 end
 
+-- simple wall kick: try one place to the right, and then one place to the left
+function Game:getColumnWithWallKick(tetromino, rotationIndex, row, column)
+  local shape = tetromino.rotations[rotationIndex]
+  if self.state.grid:checkForCollision(shape, row, column) then
+    return column
+  end
+  if self.state.grid:checkForCollision(shape, row, column + 1) then
+    return column + 1
+  end
+  if self.state.grid:checkForCollision(shape, row, column - 1) then
+    return column - 1
+  end
+  
+  -- also try 2 places, because I tetromino needs this on the left side
+  if self.state.grid:checkForCollision(shape, row, column + 2) then
+    return column + 2
+  end
+  if self.state.grid:checkForCollision(shape, row, column - 2) then
+    return column - 2
+  end
+  
+  return column
+end
+
 function Game:move(columnOffset, rowOffset, rotate)
+  if not self:isRunning() then
+    return false
+  end
+    
 	local t = self.state.activeTetromino
 	if not t then
 		return
 	end
 
-	local rotationIndex = t.rotationIndex
-	if rotate then
-		rotationIndex = t:getNextRotationIndex()
-	end
 	local row = t.yOffset+rowOffset
 	local column = t.xOffset+columnOffset
-	return self:setShapeAndPosition(rotationIndex, row, column)
+	local rotationIndex = t.rotationIndex
+  
+	if rotate then
+		rotationIndex = t:getNextRotationIndex()
+    column = self:getColumnWithWallKick(t, rotationIndex, row, column)
+  end
+  
+  return self:setShapeAndPosition(rotationIndex, row, column)
 end
 -- todo autom korral mitte
 function Game:moveDown(noSound)
