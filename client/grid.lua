@@ -95,7 +95,7 @@ function Grid:checkForCollision(shape, row, column)
 end
 
 -- returns tetromino's topLeft.x and y
-function Grid:getLowermostValidRow(tetromino)
+function Grid:getLowestValidRow(tetromino)
 	local tCol = tetromino.xOffset
 	local shape = tetromino:getActiveShape()
 

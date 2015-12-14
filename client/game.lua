@@ -84,7 +84,8 @@ function Game:move(columnOffset, rowOffset, rotate)
   
   return self:setShapeAndPosition(rotationIndex, row, column)
 end
--- todo autom korral mitte
+
+-- no sound on automatic falling
 function Game:moveDown(noSound)
 	if self:move(0, 1) and not noSound then
     playAudioMove()
@@ -148,7 +149,7 @@ function Game:setShapeAndPosition(rotationIndex, row, column)
 	t.xOffset = column
 	t.yOffset = row
 	t.rotationIndex = rotationIndex
-	t.lowestValidRow = self.state.grid:getLowermostValidRow(t)
+	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
 	return true
 end
 
@@ -274,7 +275,7 @@ function Game:spawnById(id)
 	self.state.activeTetromino = nil
 
 	local t = self:newTetrominoForId(id)
-	t.lowestValidRow = self.state.grid:getLowermostValidRow(t)
+	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
 
 	if not self.state.grid:checkForCollision(t:getActiveShape(), t.yOffset, t.xOffset) then
 		self.drawing:setGameOver(true)
