@@ -49,6 +49,8 @@ function setupMarker(game)
     toggleAllControls(true, true, false)
     cameraMover:cancelMovement()
     setCameraTarget(localPlayer)
+    
+    resetHeatHaze()
   end
   
   function startTetris()
@@ -57,6 +59,8 @@ function setupMarker(game)
     game.drawing:removeIntroduction()
     game:startTetris()
     cameraMover:moveCamera(2501, -1659, 15.5, 2505, -1653, 15.3, 700, "OutQuad")
+    
+    setHeatHaze(0)
   end
   
 	function startOrStopTetris(key, keyState)
