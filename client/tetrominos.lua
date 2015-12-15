@@ -9,6 +9,9 @@ Tetromino = {
  	xOffset = 3,
  	yOffset = 1,
  	lowestValidRow = 0,
+  
+  lastLandingInterruption = nil,
+  lockDelayStartTimeMs = nil,
 }
 
 function Tetromino:new(o)
@@ -58,6 +61,27 @@ function Tetromino:getRealDimensions()
 		x = {min=minX, max=maxX}, 
 		y = {min=minY, max=maxY}
 	}
+end
+
+function Tetromino:interruptLanding()
+  self.lastLandingInterruption = getTickCount()
+end
+
+function Tetromino:isInterruptedTooLate(timeoutMs)
+  return getTickCount() - self.lastLandingInterruption > timeoutMs
+end
+
+function Tetromino:startTotalLockDelay()
+  self.lockDelayStartTimeMs = getTickCount()
+end
+
+-- e.g when tetromino is moved and it starts falling again
+function Tetromino:resetTotalLockDelay()
+  self.lockDelayStartTimeMs = nil
+end
+
+function Tetromino:isTotalLockDelayPassed(timeoutMs)
+  return getTickCount() - self.lockDelayStartTimeMs > timeoutMs
 end
 
 -- w 32 * 10 = 320

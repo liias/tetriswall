@@ -124,7 +124,7 @@ function Game:hardDrop()
 
 	if wasDropped then
 		self.drawing:drawHardDropEffect(t, originalYOffset)
-		self:tryLanding()
+		self:tryLanding(false)
     playAudioHardDrop()
 	else
 		log("ok, hard drop failed. how can that happen?")
@@ -150,20 +150,45 @@ function Game:setShapeAndPosition(rotationIndex, row, column)
 	t.yOffset = row
 	t.rotationIndex = rotationIndex
 	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
+  
+  -- todo: perhaps dont do this if hard dropped?
+  t:interruptLanding()
 	return true
 end
 
+
 -- try moving down 1 from current
-function Game:tryLanding()
+function Game:tryLanding(allowLockDelay)
 	local t = self.state.activeTetromino
 	if not t then
 		return
 	end
-	local shape = t:getActiveShape()
-	local nextRow = t.yOffset + 1
 
-	if not self.state.grid:checkForCollision(shape, nextRow, t.xOffset) then
-		self:handleLanding()
+	if not self.state.grid:checkForCollision(t:getActiveShape(), t.yOffset + 1, t.xOffset) then
+    if allowLockDelay then
+      if not self.lastLandingInterruption then
+        t:startTotalLockDelay()
+      end
+      
+      function handleLandingIfDelayed()
+        if t:isTotalLockDelayPassed(1000) or t:isInterruptedTooLate(500) then
+          self:handleLanding()
+        else
+          log("delaying")
+        end
+      end
+      
+      setTimer(handleLandingIfDelayed, 500, 1) 
+    else
+      self:handleLanding()
+    end
+  else
+    if t.lockDelayStartTimeMs then
+      -- if tetromino is moved during lock delay so that it starts falling again 
+      -- we remove the delay limit time until next landing
+      log("resetting total lock delay")
+      t:resetTotalLockDelay()
+    end
 	end
 end
 
@@ -251,8 +276,8 @@ function Game:handleLanding()
 end
 
 function Game:fallingTick()
-	self:tryLanding()
 	self:moveDown(true)
+  self:tryLanding(true)
 end
 
 function Game:initFallingTimer()
