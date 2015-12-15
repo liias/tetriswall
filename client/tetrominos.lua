@@ -68,20 +68,32 @@ function Tetromino:interruptLanding()
 end
 
 function Tetromino:isInterruptedTooLate(timeoutMs)
-  return getTickCount() - self.lastLandingInterruption > timeoutMs
+  if not self.lastLandingInterruption then
+    return true
+  end
+  
+  return (getTickCount() - self.lastLandingInterruption) > timeoutMs
 end
 
-function Tetromino:startTotalLockDelay()
+function Tetromino:hasLockDelayStarted()
+  return self.lockDelayStartTimeMs ~= nil
+end
+
+function Tetromino:startLockDelay()
   self.lockDelayStartTimeMs = getTickCount()
 end
 
 -- e.g when tetromino is moved and it starts falling again
-function Tetromino:resetTotalLockDelay()
+function Tetromino:resetLockDelay()
   self.lockDelayStartTimeMs = nil
 end
 
-function Tetromino:isTotalLockDelayPassed(timeoutMs)
-  return getTickCount() - self.lockDelayStartTimeMs > timeoutMs
+function Tetromino:isLockDelayPassed(timeoutMs)
+  if not self:hasLockDelayStarted() then
+    return false
+  end
+
+  return (getTickCount() - self.lockDelayStartTimeMs) > timeoutMs
 end
 
 -- w 32 * 10 = 320

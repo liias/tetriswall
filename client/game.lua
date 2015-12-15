@@ -40,8 +40,7 @@ function Game:new(o)
 end
 
 -- simple wall kick: try one place to the right, and then one place to the left
-function Game:getColumnWithWallKick(tetromino, rotationIndex, row, column)
-  local shape = tetromino.rotations[rotationIndex]
+function Game:getColumnWithWallKick(shape, row, column)
   if self.state.grid:checkForCollision(shape, row, column) then
     return column
   end
@@ -63,6 +62,21 @@ function Game:getColumnWithWallKick(tetromino, rotationIndex, row, column)
   return column
 end
 
+-- simple floor kick: try one and two places to the top
+function Game:getRowWithFloorKick(shape, row, column)
+  if self.state.grid:checkForCollision(shape, row, column) then
+    return row
+  end
+  if self.state.grid:checkForCollision(shape, row - 1, column) then
+    return row - 1
+  end
+  if self.state.grid:checkForCollision(shape, row - 2, column) then
+    return row - 2
+  end
+  
+  return row
+end
+
 function Game:move(columnOffset, rowOffset, rotate)
   if not self:isRunning() then
     return false
@@ -79,7 +93,9 @@ function Game:move(columnOffset, rowOffset, rotate)
   
 	if rotate then
 		rotationIndex = t:getNextRotationIndex()
-    column = self:getColumnWithWallKick(t, rotationIndex, row, column)
+    local shape = t.rotations[rotationIndex]
+    column = self:getColumnWithWallKick(shape, row, column)
+    row = self:getRowWithFloorKick(shape, row, column)
   end
   
   return self:setShapeAndPosition(rotationIndex, row, column)
@@ -166,13 +182,18 @@ function Game:tryLanding(allowLockDelay)
 
 	if not self.state.grid:checkForCollision(t:getActiveShape(), t.yOffset + 1, t.xOffset) then
     if allowLockDelay then
-      if not self.lastLandingInterruption then
-        t:startTotalLockDelay()
+      if not t:hasLockDelayStarted() then
+        log("starting lock delay")
+        t:startLockDelay()
       end
       
       function handleLandingIfDelayed()
-        if t:isTotalLockDelayPassed(1000) or t:isInterruptedTooLate(500) then
-          self:handleLanding()
+        if t:isLockDelayPassed(1000) or t:isInterruptedTooLate(500) then
+          local tetromino = self.state.activeTetromino
+          -- need to check again if it's really landed, otherwise we might "land" it in the air after wallkick
+          if tetromino and not self.state.grid:checkForCollision(tetromino:getActiveShape(), tetromino.yOffset + 1, tetromino.xOffset) then
+            self:handleLanding()
+          end
         else
           log("delaying")
         end
@@ -183,11 +204,11 @@ function Game:tryLanding(allowLockDelay)
       self:handleLanding()
     end
   else
-    if t.lockDelayStartTimeMs then
+    if t:hasLockDelayStarted() then
       -- if tetromino is moved during lock delay so that it starts falling again 
       -- we remove the delay limit time until next landing
       log("resetting total lock delay")
-      t:resetTotalLockDelay()
+      t:resetLockDelay()
     end
 	end
 end
