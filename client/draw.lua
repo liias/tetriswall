@@ -282,11 +282,11 @@ function Drawing:drawLandedRectangles(rectangles)
       		local startTime = self.periodStartTimes.flashRemovableRows
       		if startTime ~= nil and contains(self.highlightedRows, y) then
       			local duration = getTickCount() - startTime -- 1-900
-  				local animAlpha = getAnimAlpha(duration, 100)
-  				color = colorFromRgba(rgb, animAlpha)
+            local animAlpha = getAnimAlpha(duration, 100)
+            color = colorFromRgba(rgb, animAlpha)
       		end
 
-			self:drawRectangle(x-1, y-1, color)
+          self:drawRectangle(x-1, y-1, color)
       	end
       end
     end

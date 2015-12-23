@@ -12,6 +12,7 @@ end
 function stopMusic()
   if backgroundMusic then
     stopSound(backgroundMusic)
+    backgroundMusic = nil
   end
 end
 
@@ -37,4 +38,12 @@ end
 
 function playAudioTheEnd()
   playAudioSfx("client/audio/sfx/theend.wav")
+end
+
+function playAudioClearRow()
+  playAudioSfx("client/audio/sfx/rowclear.mp3")
+end
+
+function playAudioClearTetris()
+  playAudioSfx("client/audio/sfx/tetrisclear.mp3")
 end

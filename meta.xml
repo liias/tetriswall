@@ -29,4 +29,6 @@
   <file src="client/audio/sfx/harddrop.wav" type="client" />
   <file src="client/audio/sfx/hold.wav" type="client" />
   <file src="client/audio/sfx/theend.wav" type="client" />
+  <file src="client/audio/sfx/rowclear.mp3" type="client" />
+  <file src="client/audio/sfx/tetrisclear.mp3" type="client" />
 </meta>

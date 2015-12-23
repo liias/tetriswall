@@ -286,6 +286,11 @@ function Game:handleLanding()
 			self.state.grid:removeRows(filledLines)
 			self:giveNewTetromino(true)
 		end
+    if numberOfFilledLines == 4 then
+      playAudioClearTetris()
+    else
+      playAudioClearRow()
+    end
 		self.drawing:flashRemovableRows(filledLines, removeRowsAndGiveNewTetromino)
 		if numberOfFilledLines == 4 then
 			self.drawing:startFourRowsClear()
