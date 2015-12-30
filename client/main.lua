@@ -12,8 +12,11 @@ end
 function createTetrisWallObject()
 	-- Create object with model 4729 (billboard)
 	local tetrisObject = createObject(4729, 2505, -1653, 11.6, 70, 270, 326)
+  setObjectBreakable(tetrisObject, false)
 	setElementDoubleSided(tetrisObject, true)
 	setObjectScale(tetrisObject, 0.5)
+  -- setObjectScale does not effect collisions, so remove the collision
+  setElementCollisionsEnabled(tetrisObject, false)
 	return tetrisObject
 end
 

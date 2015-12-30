@@ -183,7 +183,7 @@ function Game:tryLanding(allowLockDelay)
 	if not self.state.grid:checkForCollision(t:getActiveShape(), t.yOffset + 1, t.xOffset) then
     if allowLockDelay then
       if not t:hasLockDelayStarted() then
-        log("starting lock delay")
+        --log("starting lock delay")
         t:startLockDelay()
       end
       
@@ -195,7 +195,7 @@ function Game:tryLanding(allowLockDelay)
             self:handleLanding()
           end
         else
-          log("delaying")
+          --log("delaying")
         end
       end
       
@@ -367,6 +367,10 @@ function Game:setHeldTetrominoId(tetrominoId)
 end
 
 function Game:holdCurrentTetromino()
+  if not self:isRunning() then
+    return false
+  end
+  
   if self.state.activeTetromino then
     if self.state.heldTetrominoInRound then
       self.drawing:startTetrominoAlreadyHeld()

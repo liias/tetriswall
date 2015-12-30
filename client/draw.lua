@@ -62,15 +62,22 @@ end
 function Drawing:drawTetrominoQueue(nextTetrominoIds)
 	local nextTetrominoId = nextTetrominoIds[1]
 	local tetromino = IdTetrominoClassMap[nextTetrominoId]
-  self:drawTextAndTetromino(tetromino, 11, 2, "next")
+  self:drawTextOnTopOfTetromino(3, -2, "NEXT")
+  
+  if tetromino then
+    local shape = tetromino:getActiveShape()
+    self:drawShapeAtOffset(shape, tetromino.color, 3, 0, true)
+  end
 end
 
 function Drawing:drawHeldTetromino(tetrominoId)
-  local tetromino = nil
+  self:drawTextOnTopOfTetromino(11, 14, "HOLD")
+  
   if tetrominoId then
-    tetromino = IdTetrominoClassMap[tetrominoId]
-  end  
-  self:drawTextAndTetromino(tetromino, 11, 14, "hold")
+    local tetromino = IdTetrominoClassMap[tetrominoId]
+    local shape = tetromino:getActiveShape()
+    self:drawShapeAtOffset(shape, tetromino.color, 11, 16, true)
+  end
 end
 
 function Drawing:startTetrominoAlreadyHeld()
@@ -86,17 +93,12 @@ function Drawing:drawTetrominoAlreadyHeld()
 end
 
 
-function Drawing:drawTextAndTetromino(tetromino, xOffset, yOffset, text)
+function Drawing:drawTextOnTopOfTetromino(xOffset, yOffset, text)
   local length = self.board.rectangle.length
-	local textX = self.board.tetrominoX+xOffset*length
+  local textX = self.board.tetrominoX+xOffset*length+length/2
 	local textY = self.board.tetrominoY+(yOffset-1)*length
   
-  dxDrawText(text, textX, textY, textX, textY, white)
-  
-  if tetromino then
-    local shape = tetromino:getActiveShape()
-    self:drawShapeAtOffset(shape, tetromino.color, xOffset, yOffset+2)
-  end
+  dxDrawText(text, textX, textY, textX, textY, tocolor(255, 240, 135), 1.5, "default-bold")
 end
 
 function Drawing:drawButtons()
@@ -121,16 +123,26 @@ function Drawing:drawGameOver()
 	dxDrawText("Game Over.\nPress R to restart.", x, y, x, y, white, 3)
 end
 
+function Drawing:getFullWidth()
+  return self.board.x+self.board.width+200
+end
+
+function Drawing:getFullHeight()
+  return self.board.y+self.board.height+50
+end
 
 function Drawing:drawBackground()
+  local w = self:getFullWidth()
+  local h = self:getFullHeight()
+  dxDrawRectangle(0, 0, w, h, tocolor(0,0,0), false)
 	dxDrawRectangle(self.board.x, self.board.y, self.board.width, self.board.height, self.board.backgroundColor, false)
 	dxDrawImage(self.board.x, self.board.y, self.board.width, self.board.height, "client/img/grid322x642.png", 0, 0, 0, self.board.gridColor, false)
 end
 
-function Drawing:drawRectangle(x, y, color)
+function Drawing:drawRectangle(x, y, color, allowOutOfBoard)
 	local length = self.board.rectangle.length
 	y = y-2
-	if y < 0 then
+	if not allowOutOfBoard and y < 0 then
 		-- dont draw first two rows
 		return
 	end
@@ -140,14 +152,14 @@ function Drawing:drawRectangle(x, y, color)
 	dxDrawImage(rectangleX, rectangleY, length, length, "client/img/tetrominopiece32.png", 0, 0, 0, color, false)
 end
 
-function Drawing:drawShapeAtOffset(shape, color, xOffset, yOffset)
-	local xOffset = xOffset - 1
-	local yOffset = yOffset - 1
+function Drawing:drawShapeAtOffset(shape, color, xOffset, yOffset, allowOutOfBoard)
+	xOffset = xOffset - 1
+	yOffset = yOffset - 1
 
 	for y, line in ipairs(shape) do
       for x, isFilled in ipairs(line) do
       	if isFilled == 1 then
-			self:drawRectangle(x + xOffset, y + yOffset, color)
+          self:drawRectangle(x + xOffset, y + yOffset, color, allowOutOfBoard)
       	end
       end
     end
@@ -367,9 +379,12 @@ end
 
 
 function Drawing:initDrawing(textureName, targetObject)
-	self:initDimensions(0, 0)
-	-- 500, 1700 = 1:3,4
-	self.tetrisRenderTarget = dxCreateRenderTarget(500, 1850, true)
+	self:initDimensions(10, 100)
+  
+  local w = self:getFullWidth()
+  local h = self:getFullHeight()
+  
+	self.tetrisRenderTarget = dxCreateRenderTarget(w, h, false)
 	initShader(self.tetrisRenderTarget, textureName, targetObject)
 
 	-- draw come play until tetris has been started
@@ -388,6 +403,11 @@ function Drawing:drawCurrentStateOnTarget()
 	dxSetRenderTarget(self.tetrisRenderTarget, true)
 	self:drawCurrentState()
 	dxSetRenderTarget()
+  
+  -- for debugging on screen:
+  --local w = self:getFullWidth()
+  --local h = self:getFullHeight()
+  --dxDrawImage(0,  0,  w, h, self.tetrisRenderTarget)
 end
 
 function Drawing:startDrawing()
@@ -411,12 +431,9 @@ end
 -- targetObject can be 0
 function initShader(texture, textureName, targetObject)
 	local SHADER_FILE_PATH = "client/shaders/texture_replace.fx"
-	--local TEXTURE_NAME = "bobo_2"
 	local SHADER_TEXTURE_VAR_NAME = "tetrisTexture"
 
-	--local targetObject = nil -- can bind to specific object
-
-	local shader, technique = dxCreateShader(SHADER_FILE_PATH, 0, 0, false, "world,object")
+	local shader, technique = dxCreateShader(SHADER_FILE_PATH, 0, 0, false, "object")
 	if not shader then
 		outputChatBox("Tetris: Could not create shader. Please use debugscript 3")
 	else
