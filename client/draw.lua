@@ -60,7 +60,7 @@ function Drawing:drawFourRowsClear()
 end
 
 function Drawing:drawTetrominoQueue(nextTetrominoIds)
-  self:drawTextOnTopOfTetromino(3, -2, "NEXT")
+  self:drawTextOnTopOfTetromino(3, 0, "NEXT")
   
   local nextTetrominoId = nextTetrominoIds[1]
   if nextTetrominoId then
@@ -76,12 +76,11 @@ function Drawing:drawTetrominoQueue(nextTetrominoIds)
 end
 
 function Drawing:drawHeldTetromino(tetrominoId)
-  local y = 5
-  self:drawTextOnTopOfTetromino(11, y-2, "HOLD")
+  self:drawTextOnTopOfTetromino(11, 5, "HOLD")
   
   if tetrominoId then
     local tetromino = IdTetrominoClassMap[tetrominoId]
-    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 11, y, true)
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 11, 5, true)
   end
 end
 
@@ -99,6 +98,7 @@ end
 
 
 function Drawing:drawTextOnTopOfTetromino(xOffset, yOffset, text)
+  yOffset = yOffset-2
   local length = self.board.rectangle.length
   local textX = self.board.tetrominoX+xOffset*length+length/2
 	local textY = self.board.tetrominoY+(yOffset-1)*length
@@ -226,11 +226,16 @@ end
 
 
 function Drawing:drawFallingTetromino(tetromino)
-	local shape = tetromino:getActiveShape()
-	local xOffset = tetromino.xOffset
-	local yOffset = tetromino.yOffset
-	self:drawShapeOutlineAtOffset(shape, tetromino.color, xOffset, tetromino.lowestValidRow)
-	self:drawShapeAtOffset(shape, tetromino.color, xOffset, yOffset)
+  self:drawGhost(tetromino)
+  
+  local shape = tetromino:getActiveShape()
+	self:drawShapeAtOffset(shape, tetromino.color, tetromino.xOffset, tetromino.yOffset)
+end
+
+function Drawing:drawGhost(tetromino)
+  local shape = tetromino:getActiveShape()
+  self:drawShapeOutlineAtOffset(shape, tetromino.color, tetromino.xOffset, tetromino.lowestValidRow)
+  self:drawShapeAtOffset(shape, tetromino.shadowColor, tetromino.xOffset, tetromino.lowestValidRow)
 end
 
 function Drawing:drawCurrentState()
