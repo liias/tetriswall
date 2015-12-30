@@ -65,13 +65,19 @@ function Drawing:drawTetrominoQueue(nextTetrominoIds)
   local nextTetrominoId = nextTetrominoIds[1]
   if nextTetrominoId then
     local tetromino = IdTetrominoClassMap[nextTetrominoId]
-    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 3, 0, true)
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 3, 0, 1, true)
   end
   
   local nextTetrominoId2 = nextTetrominoIds[2]
   if nextTetrominoId2 then
     local tetromino = IdTetrominoClassMap[nextTetrominoId2]
-    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 8, 0, true)
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 10, 0, 0.8, true)
+  end
+  
+  local nextTetrominoId3 = nextTetrominoIds[3]
+  if nextTetrominoId3 then
+    local tetromino = IdTetrominoClassMap[nextTetrominoId3]
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 15, 0, 0.8, true)
   end
 end
 
@@ -80,7 +86,7 @@ function Drawing:drawHeldTetromino(tetrominoId)
   
   if tetrominoId then
     local tetromino = IdTetrominoClassMap[tetrominoId]
-    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 11, 5, true)
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 11, 5, 1, true)
   end
 end
 
@@ -144,27 +150,37 @@ function Drawing:drawBackground()
 	dxDrawImage(self.board.x, self.board.y, self.board.width, self.board.height, "client/img/grid322x642.png", 0, 0, 0, self.board.gridColor, false)
 end
 
-function Drawing:drawRectangle(x, y, color, allowOutOfBoard)
-	local length = self.board.rectangle.length
+function Drawing:drawRectangle(x, y, color, scale, allowOutOfBoard)
+  if not scale then
+    scale = 1
+  end
+	
 	y = y-2
 	if not allowOutOfBoard and y < 0 then
 		-- dont draw first two rows
 		return
 	end
 
-	local rectangleX = self.board.tetrominoX+x*length
-	local rectangleY = self.board.tetrominoY+y*length
+  local length = self.board.rectangle.length
+  length = length * scale
+
+	local rectangleX = self.board.tetrominoX + x*length
+	local rectangleY = self.board.tetrominoY + y*length
 	dxDrawImage(rectangleX, rectangleY, length, length, "client/img/tetrominopiece32.png", 0, 0, 0, color, false)
 end
 
-function Drawing:drawShapeAtOffset(shape, color, xOffset, yOffset, allowOutOfBoard)
+function Drawing:drawShapeAtOffset(shape, color, xOffset, yOffset, scale, allowOutOfBoard)
+  if not scale then
+    scale = 1
+  end
+
 	xOffset = xOffset - 1
 	yOffset = yOffset - 1
 
 	for y, line in ipairs(shape) do
       for x, isFilled in ipairs(line) do
       	if isFilled == 1 then
-          self:drawRectangle(x + xOffset, y + yOffset, color, allowOutOfBoard)
+          self:drawRectangle(x + xOffset, y + yOffset, color, scale, allowOutOfBoard)
       	end
       end
     end

@@ -398,7 +398,7 @@ function Game:reset()
   self.state.linesForNextLevel = Settings.linesForNewLevel
   self:initFallingTimer()
   
-	self:generateRandomTetrominoIds(2)
+	self:generateRandomTetrominoIds(3)
 
 	if self.state.activeTetromino then
 		self.state.activeTetromino = false
