@@ -207,7 +207,7 @@ function Game:tryLanding(allowLockDelay)
     if t:hasLockDelayStarted() then
       -- if tetromino is moved during lock delay so that it starts falling again 
       -- we remove the delay limit time until next landing
-      log("resetting total lock delay")
+      --log("resetting total lock delay")
       t:resetLockDelay()
     end
 	end

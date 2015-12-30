@@ -60,23 +60,28 @@ function Drawing:drawFourRowsClear()
 end
 
 function Drawing:drawTetrominoQueue(nextTetrominoIds)
-	local nextTetrominoId = nextTetrominoIds[1]
-	local tetromino = IdTetrominoClassMap[nextTetrominoId]
   self:drawTextOnTopOfTetromino(3, -2, "NEXT")
   
-  if tetromino then
-    local shape = tetromino:getActiveShape()
-    self:drawShapeAtOffset(shape, tetromino.color, 3, 0, true)
+  local nextTetrominoId = nextTetrominoIds[1]
+  if nextTetrominoId then
+    local tetromino = IdTetrominoClassMap[nextTetrominoId]
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 3, 0, true)
+  end
+  
+  local nextTetrominoId2 = nextTetrominoIds[2]
+  if nextTetrominoId2 then
+    local tetromino = IdTetrominoClassMap[nextTetrominoId2]
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 8, 0, true)
   end
 end
 
 function Drawing:drawHeldTetromino(tetrominoId)
-  self:drawTextOnTopOfTetromino(11, 14, "HOLD")
+  local y = 5
+  self:drawTextOnTopOfTetromino(11, y-2, "HOLD")
   
   if tetrominoId then
     local tetromino = IdTetrominoClassMap[tetrominoId]
-    local shape = tetromino:getActiveShape()
-    self:drawShapeAtOffset(shape, tetromino.color, 11, 16, true)
+    self:drawShapeAtOffset(tetromino:getActiveShape(), tetromino.color, 11, y, true)
   end
 end
 
