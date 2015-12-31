@@ -27,7 +27,8 @@ Game = {
 		level = 0,
 		speed = 800,
 		linesForNextLevel = Settings.linesForNewLevel,
-		condition = StateConditions.NOT_STARTED
+		condition = StateConditions.NOT_STARTED,
+    bag = false
 	},
 	drawing = nil
 }
@@ -338,7 +339,6 @@ function Game:spawnById(id)
 	self.state.activeTetromino = t
 end
 
-
 function Game:giveNewTetromino(resetHeldTetrominoUsed)
 	local nextTetrominoId = table.remove(self.state.nextTetrominoIds, 1)
 	self:addRandomTetrominoIdToQueue()
@@ -351,7 +351,7 @@ function Game:giveNewTetromino(resetHeldTetrominoUsed)
 end
 
 function Game:addRandomTetrominoIdToQueue()
-	local randomTetrominoId = math.random(1, 7)
+	local randomTetrominoId = self.state.bag:takeNext()
 	table.insert(self.state.nextTetrominoIds, randomTetrominoId)
 end
 
@@ -397,6 +397,8 @@ function Game:reset()
   self.state.speed = 800
   self.state.linesForNextLevel = Settings.linesForNewLevel
   self:initFallingTimer()
+  
+  self.state.bag = Bag:new()
   
 	self:generateRandomTetrominoIds(3)
 
