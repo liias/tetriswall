@@ -3,8 +3,8 @@
 Settings = {
 	rows = 22, -- the first two rows are "hidden"
 	columns = 10,
-	speed = 800, -- in milliseconds
-	linesForNewLevel = 10
+	speed = 1000, -- in milliseconds
+	linesForNewLevel = 5
 }
 
 
@@ -24,8 +24,8 @@ Game = {
     heldTetrominoInRound = false,
 		score = 0,
 		clearedLines = 0,
-		level = 0,
-		speed = 800,
+		level = 1,
+		speed = Settings.speed,
 		linesForNextLevel = Settings.linesForNewLevel,
 		condition = StateConditions.NOT_STARTED,
     bag = false
@@ -215,34 +215,37 @@ function Game:tryLanding(allowLockDelay)
 end
 
 function Game:setLevelFromClearedLines()
-	local lines = self.state.clearedLines
+	local clearedLines = self.state.clearedLines
 	local oldLevel = self.state.level
 	local levelUpdateLines = Settings.linesForNewLevel
-	self.state.level = (lines - lines % levelUpdateLines) / levelUpdateLines
-	self.state.linesForNextLevel = levelUpdateLines - lines % levelUpdateLines
-
+  local level = (clearedLines - clearedLines % levelUpdateLines) / levelUpdateLines
+  level = level + 1
+  
+	self.state.level = level
+	self.state.linesForNextLevel = levelUpdateLines - clearedLines % levelUpdateLines
 	if self.state.level ~= oldLevel then
 		self.state.speed = self:getSpeedForLevel(self.state.level)
 		self:initFallingTimer()
 	end
 end
 
+-- min is 50ms for setTimer
 local LEVEL_SPEED = {
-	[0] = 800,
-	[1] = 700,
-	[2] = 600,
-	[3] = 500,
-	[4] = 400,
-	[5] = 300,
-	[6] = 200,
-	[7] = 150,
-	[8] = 125,
-	[9] = 100,
-	[10] = 75,
-	[11] = 50,
+	[1] = 1000,
+	[2] = 793,
+	[3] = 618,
+	[4] = 473,
+	[5] = 355,
+	[6] = 262,
+	[7] = 190,
+	[8] = 135,
+	[9] = 94,
+	[10] = 64,
+	[11] = 57, -- 43, 28, 18, 11, 7
+	[12] = 50,
 	default = 50
 }
-
+ 
 function Game:getSpeedForLevel(level)
 	return LEVEL_SPEED[level] or LEVEL_SPEED.default
 end
@@ -254,7 +257,7 @@ function Game:manageScore(clearedLines)
 
 	self:setLevelFromClearedLines()
 
-	local n = self.state.level + 1
+	local n = self.state.level
 
 	local score = 0
 	if clearedLines == 1 then
@@ -393,8 +396,8 @@ function Game:reset()
   self.state.heldTetrominoId = nil
 	self.state.score = 0
   self.state.clearedLines = 0
-  self.state.level = 0
-  self.state.speed = 800
+  self.state.level = 1
+  self.state.speed = Settings.speed
   self.state.linesForNextLevel = Settings.linesForNewLevel
   self:initFallingTimer()
   
