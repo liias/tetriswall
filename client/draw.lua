@@ -42,7 +42,7 @@ function Drawing:manualFromKeyNames()
     ROTATE = getCommandKeyName(Commands.ROTATE),
     HOLD = getCommandKeyName(Commands.HOLD),
     RESET = getCommandKeyName(Commands.RESET),
-    PAUSE = getCommandKeyName(Commands.PAUSE),
+    PAUSE = getCommandKeyName(Commands.TOGGLE_PAUSE),
   }
   
   local template = [[Left: %s

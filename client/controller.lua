@@ -1,16 +1,20 @@
 
+-- Descriptive command names for MTA Binds menu
 Commands = {
-  START_STOP = "tetris_start_stop",
-  LEFT = "tetris_left",
-  RIGHT = "tetris_right",
-  DOWN = "tetris_down",
-  HARD_DROP = "tetris_hard_drop",
-  ROTATE = "tetris_rotate",
-  HOLD = "tetris_hold",
-  RESET = "tetris_reset",
-  PAUSE = "tetris_pause",
+  START_STOP = "Start/stop Tetris",
+  LEFT = "Move tetromino left",
+  RIGHT = "Move tetromino right",
+  DOWN = "Move tetromino down",
+  HARD_DROP = "Hard drop",
+  ROTATE = "Rotate tetromino",
+  HOLD = "Hold tetromino",
+  RESET = "Start new Tetris game",
+  TOGGLE_PAUSE = "Toggle pause",
+  
+  PAUSE_CURRENT_GAME = "tetris_pause"
 }
-    
+
+
 local DEFAULT_BINDINGS = {
   [Commands.START_STOP] = "rshift",
 	[Commands.LEFT] = "arrow_l",
@@ -20,7 +24,7 @@ local DEFAULT_BINDINGS = {
 	[Commands.ROTATE] = "arrow_u",
   [Commands.HOLD] = "lshift",
 	[Commands.RESET] = "r",
-	[Commands.PAUSE] = "l"
+	[Commands.TOGGLE_PAUSE] = "l"
 }
 
 -- dont use it to bind/unbind anything
@@ -41,7 +45,13 @@ function bindCommand(command, keyState)
   if not keyState then
     keyState = "down"
   end
-  bindKey(DEFAULT_BINDINGS[command], keyState, command, keyState)
+  
+  -- add commandKeyState only if "up"
+  local commandKeyState = nil
+  if keyState == "up" then
+    commandKeyState = "up"
+  end
+  bindKey(DEFAULT_BINDINGS[command], keyState, command, commandKeyState)
 end
 
 function unbindCommand(command, keyState)
@@ -126,10 +136,13 @@ function Controller:reset()
 	self.game:reset()
 end
 
-function Controller:pause()
+function Controller:togglePause()
 	self.game:togglePause()
 end
 
+function Controller:pause()
+	self.game:pause()
+end
 
 -- repeatable functions, used by setTimer
 function Controller:initNameFunctionMap() 
@@ -165,7 +178,10 @@ function Controller:bindControls()
   self:handleCmd(Commands.ROTATE, self.rotate)
   self:handleCmd(Commands.HOLD, self.hold)
   self:handleCmd(Commands.RESET, self.reset)
-  self:handleCmd(Commands.PAUSE, self.pause)
+  self:handleCmd(Commands.TOGGLE_PAUSE, self.togglePause)
+  
+  self:handleCmd(Commands.PAUSE_CURRENT_GAME, self.pause)
+
 end
 
 function Controller:unbindControls()
@@ -176,5 +192,7 @@ function Controller:unbindControls()
   removeCommandHandler(Commands.ROTATE)
   removeCommandHandler(Commands.HOLD)
   removeCommandHandler(Commands.RESET)
-  removeCommandHandler(Commands.PAUSE)
+  removeCommandHandler(Commands.TOGGLE_PAUSE)
+  
+  removeCommandHandler(Commands.PAUSE_CURRENT_GAME)
 end

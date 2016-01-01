@@ -423,12 +423,12 @@ function Game:togglePause()
 end
 
 function Game:pause()
-	self.state.condition = StateConditions.PAUSED
 	if self.state.fallingTimer then
+    self.state.condition = StateConditions.PAUSED
 		killTimer(self.state.fallingTimer)
 		self.state.fallingTimer = nil
+    stopMusic()
 	end
-  stopMusic()
 end
 
 function Game:resume()
@@ -443,7 +443,6 @@ function Game:resumeOrStart()
   end
   self:resume()
 end
-
 
 -- for blip
 function Game:startTetris()
