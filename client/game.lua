@@ -15,7 +15,14 @@ StateConditions = {
 }
 
 Game = {
-	state = {
+}
+
+function Game:new(o)
+	o = o or {}   -- create object if user does not provide one
+	setmetatable(o, self)
+	self.__index = self
+  
+  o.state = {
 		grid = false,
 		activeTetromino = false,
 		fallingTimer = nil,
@@ -29,14 +36,8 @@ Game = {
 		linesForNextLevel = Settings.linesForNewLevel,
 		condition = StateConditions.NOT_STARTED,
     bag = false
-	},
-	drawing = nil
-}
-
-function Game:new(o)
-	o = o or {}   -- create object if user does not provide one
-	setmetatable(o, self)
-	self.__index = self
+	}
+  o.drawing = nil
 	return o
 end
 

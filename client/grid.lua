@@ -1,14 +1,14 @@
 Grid = {
 	rows = 22, -- the first two rows are "hidden"
-	columns = 10,
-	rectangles = false,
+	columns = 10
 }
 
 function Grid:new(o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
 	self.__index = self
-	self:createEmptyGrid()
+  
+	o.rectangles = self:createEmptyGrid()
 	return o
 end
 
@@ -25,7 +25,7 @@ function Grid:createEmptyGrid()
 	for r = 1, self.rows do
 		table.insert(rectangles, self:emptyLine())
 	end
-	self.rectangles = rectangles
+	return rectangles
 end
 
 function Grid:addTetrominoToGrid(tetromino)

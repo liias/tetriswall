@@ -1,6 +1,6 @@
 local backgroundMusic = nil
 
-function randomFile()
+local function randomFile()
   local n = math.random(1,2)
   return "client/audio/music/fast" .. tostring(n) .. ".mp3"
 end
@@ -16,7 +16,7 @@ function stopMusic()
   end
 end
 
-function playAudioSfx(soundPath)
+local function playAudioSfx(soundPath)
   playSound(soundPath)
 end
 

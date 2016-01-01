@@ -1,5 +1,4 @@
 Controller = {
-	state = false,
 	bindFuncs = {},
 	game = nil
 }

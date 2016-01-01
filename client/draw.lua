@@ -1,5 +1,6 @@
 Drawing = {
 	state = false,
+  bindings = nil,
 	board = {
 		width = 322,
 		height = 642,
@@ -123,7 +124,7 @@ function Drawing:drawButtons()
 	Pause: L
 	Restart: R
 	Hold: left shift
-	Exit: ]] .. START_STOP_KEY_NAME
+	Exit: ]] .. self.bindings.START_STOP_KEY_NAME
 	dxDrawText(manual, x, y, x, y, white, 1.5)
 end
 

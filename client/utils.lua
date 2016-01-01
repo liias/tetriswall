@@ -1,3 +1,30 @@
+-- can use to set class method as an event callback
+function bind(func, ...)
+    if not func then
+        if DEBUG then
+            outputConsole(debug.traceback())
+            outputServerLog(debug.traceback())
+        end
+        error("Bad function pointer @ bind. See console for more details")
+    end
+
+    local boundParams = {...}
+    return
+    function(...)
+        local params = {}
+        local boundParamSize = select("#", unpack(boundParams))
+        for i = 1, boundParamSize do
+            params[i] = boundParams[i]
+        end
+
+        local funcParams = {...}
+        for i = 1, select("#", ...) do
+            params[boundParamSize + i] = funcParams[i]
+        end
+        return func(unpack(params))
+    end
+end
+
 function getRectangleEdges(xOffset, yOffset)
 	local topLeftX = xOffset
 	local topLeftY = yOffset
@@ -57,5 +84,5 @@ function getShapeOutline(shape)
 end
 
 function log(msg)
-  outputDebugString(msg)
+  outputDebugString(tostring(msg))
 end

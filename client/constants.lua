@@ -1,5 +1,3 @@
-START_STOP_KEY = "rshift"
-START_STOP_KEY_NAME = "right shift"
 
 NORMAL_ALPHA = 200
 SHADOW_ALPHA = 60
