@@ -4,12 +4,12 @@ Commands = {
   START_STOP = "Start/stop Tetris",
   LEFT = "Move tetromino left",
   RIGHT = "Move tetromino right",
-  DOWN = "Move tetromino down",
-  HARD_DROP = "Hard drop",
-  ROTATE = "Rotate tetromino",
+  DOWN = "Soft drop tetromino",
+  HARD_DROP = "Hard drop tetromino",
+  ROTATE = "Rotate tetromino right",
   HOLD = "Hold tetromino",
   RESET = "Start new Tetris game",
-  TOGGLE_PAUSE = "Toggle pause",
+  TOGGLE_PAUSE = "Toggle pause for Tetris game",
   
   PAUSE_CURRENT_GAME = "tetris_pause"
 }

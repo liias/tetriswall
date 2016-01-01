@@ -90,6 +90,10 @@ function replaceBlipTexture(textureName, newImagePath)
 	engineApplyShaderToWorldTexture(textureReplaceShader, textureName)
 end
 
+function capitalize(s)
+  return s:sub(1,1):upper()..s:sub(2)
+end
+
 function log(msg)
   outputDebugString(tostring(msg))
 end

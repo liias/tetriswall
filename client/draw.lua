@@ -33,27 +33,31 @@ function Drawing:new(o)
 end
 
 function Drawing:manualFromKeyNames()
-  local k = {
-    START_STOP = getCommandKeyName(Commands.START_STOP),
-    LEFT = getCommandKeyName(Commands.LEFT),
-    RIGHT = getCommandKeyName(Commands.RIGHT),
-    DOWN = getCommandKeyName(Commands.DOWN),
-    HARD_DROP = getCommandKeyName(Commands.HARD_DROP),
-    ROTATE = getCommandKeyName(Commands.ROTATE),
-    HOLD = getCommandKeyName(Commands.HOLD),
-    RESET = getCommandKeyName(Commands.RESET),
-    PAUSE = getCommandKeyName(Commands.TOGGLE_PAUSE),
-  }
+  function commandKey(command)
+    return "#FFFF00" .. capitalize(getCommandKeyName(command)) .. "#FFFFFF"
+  end
   
+  local k = {
+    START_STOP = commandKey(Commands.START_STOP),
+    LEFT = commandKey(Commands.LEFT),
+    RIGHT = commandKey(Commands.RIGHT),
+    DOWN = commandKey(Commands.DOWN),
+    HARD_DROP = commandKey(Commands.HARD_DROP),
+    ROTATE = commandKey(Commands.ROTATE),
+    HOLD = commandKey(Commands.HOLD),
+    RESET = commandKey(Commands.RESET),
+    PAUSE = commandKey(Commands.TOGGLE_PAUSE),
+  }
+
   local template = [[Left: %s
-	Right: %s
-	Down: %s
-	Rotate: %s
-	Hard drop: %s
-	Pause: %s
-	Restart: %s
-	Hold: %s
-	Exit: %s]]
+Right: %s
+Down: %s
+Rotate: %s
+Hard drop: %s
+Pause: %s
+Restart: %s
+Hold: %s
+Exit: %s]]
   
   return string.format(template, k.LEFT, k.RIGHT, k.DOWN, k.ROTATE, k.HARD_DROP, k.PAUSE, k.RESET, k.HOLD, k.START_STOP)
 end
@@ -70,8 +74,8 @@ end
 function Drawing:drawScore()
 	local x = self.board.x + 7
 	local y = self.board.y + self.board.height + 10
-	local txt = "Score: " .. self.state.score .. " Level: " .. self.state.level .. " Lines to clear: " .. self.state.linesForNextLevel
-	dxDrawText(txt, x, y, x, y, white, 1.5)
+	local txt = "Score: #FFFF00" .. self.state.score .. "#FFFFFF Level: #FFFF00" .. self.state.level .. "#FFFFFF Lines to clear: #FFFF00" .. self.state.linesForNextLevel
+  dxDrawText(txt, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
 end
 
 function Drawing:startFourRowsClear()

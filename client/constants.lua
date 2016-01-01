@@ -39,18 +39,18 @@ IdColorMap = {
 
 KEY_NAMES = { 
   -- mouse
-  ["mouse1"] = "Left click",
-  ["mouse2"] = "Right click",
-  ["mouse3"] = "Middle click",
-  ["mouse4"] = "Mouse 4",
-  ["mouse5"] = "Mouse 5",
-  ["mouse_wheel_up"] = "Mouse wheel up",
-  ["mouse_wheel_down"] = "Mouse wheel down",
+  ["mouse1"] = "left click",
+  ["mouse2"] = "right click",
+  ["mouse3"] = "middle click",
+  ["mouse4"] = "mouse 4",
+  ["mouse5"] = "mouse 5",
+  ["mouse_wheel_up"] = "mouse wheel up",
+  ["mouse_wheel_down"] = "mouse wheel down",
   -- arrows
-  ["arrow_l"] = "Left",
-  ["arrow_u"] = "Up",
-  ["arrow_r"] = "Right",
-  ["arrow_d"] = "Down",
+  ["arrow_l"] = "left",
+  ["arrow_u"] = "up",
+  ["arrow_r"] = "right",
+  ["arrow_d"] = "down",
 
   ["lalt"] = "left alt",
   ["ralt"] = "right alt",
