@@ -13,6 +13,7 @@
 	<script src="client/grid.lua" type="client" />
 	<script src="client/game.lua" type="client" />
 	<script src="client/controller.lua" type="client" />
+  <script src="client/ui_tooltip.lua" type="client" />
 	<script src="client/draw.lua" type="client" />
   <script src="client/gamemarker.lua" type="client" />
 	<script src="client/main.lua" type="client" />

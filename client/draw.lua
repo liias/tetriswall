@@ -143,6 +143,10 @@ function Drawing:drawButtons()
   local x = self.board.x + self.board.width + 10
 	local y = self.board.y + 200
 	dxDrawText(self.keyNamesDescription, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+  
+  if self.state.condition == StateConditions.PAUSED then
+    dxDrawText("PAUSED", x, y+300, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+  end
 end
 
 function Drawing:drawGameOver()
@@ -276,7 +280,7 @@ function Drawing:drawCurrentState()
 	self:drawBackground()
 	self:drawScore()
 	self:drawButtons()
-
+      
   self:drawHeldTetromino(self.state.heldTetrominoId)
 
   self:drawTetrominoQueue(self.state.nextTetrominoIds)
@@ -488,6 +492,8 @@ function initShader(texture, textureName, targetObject)
 end
 
 function Drawing:stopDrawing()
+  -- update very last time before stopping (i.e to show "PAUSED" state on board)
+  self:drawOnceCurrentStateOrComePlay()
 	-- engineRemoveShaderFromWorldTexture(shader, SHADER_TEXTURE_VAR_NAME, targetObject)
 	removeEventHandler("onClientRender", root, self.renderFunc)
 end
@@ -504,34 +510,3 @@ function Drawing:enableClientRestore()
 	addEventHandler("onClientRestore", root, handleRestore)
 end
 
-function Drawing:drawTooltip(text)
-	local font = "default"
-	local padding_left, padding_right = 4, 4
-	local padding_top, padding_bottom = 0, 2
-	local scale = 2
-	local colorCoded = false
-	local height = dxGetFontHeight(scale, font) + padding_top + padding_bottom
-	local width =  dxGetTextWidth(text, scale, font, colorCoded) + padding_left + padding_right
-
-	local x = self.screenWidth - width 
-	local y = self.screenHeight/2 - height/2
-
-	dxDrawRectangle(x - padding_left, y - padding_top, width, height, tocolor(0, 0, 0, 180), false)
-	dxDrawText(text, x, y, x, y, white, scale, font, "left", "top", false, false, false, colorCoded)
-end
-
-local introductionFunc 
-function Drawing:addIntroduction(text)
-	introductionFunc = function()
-		self:drawTooltip(text)
-	end
-
-	addEventHandler("onClientRender", root, introductionFunc)
-end
-
-function Drawing:removeIntroduction()
-	if not introductionFunc then 
-		return
-	end
-	removeEventHandler("onClientRender", root, introductionFunc)
-end

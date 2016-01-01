@@ -52,7 +52,7 @@ function GameMarker:tetrisMarkerHit(hitPlayer, matchingDimension)
   else
     txt = "Start playing Tetris by pressing " .. getCommandKeyName(Commands.START_STOP)
   end
-  self.game.drawing:addIntroduction(txt)
+  addTooltip(txt)
 end
 
 
@@ -68,7 +68,7 @@ function GameMarker:tetrisMarkerLeave(leavePlayer, matchingDimension)
   end
   self.isLocalPlayerInMarker = false
   removeCommandHandler(Commands.START_STOP)
-  self.game.drawing:removeIntroduction()
+  removeTooltip()
 end
   
 function GameMarker:localPlayerWasted(killer, weapon, bodypart)
@@ -82,8 +82,8 @@ end
 
 function GameMarker:stopTetris()
   self.isRunning = false
-  self.game.drawing:removeIntroduction()
-  self.game.drawing:addIntroduction("Tetris paused. Press " .. getCommandKeyName(Commands.START_STOP) .. " to resume.")
+  removeTooltip()
+  addTooltip("Tetris paused. Press " .. getCommandKeyName(Commands.START_STOP) .. " to resume.")
   self.game:stopTetris()
   toggleAllControls(true, true, false)
   self.cameraMover:cancelMovement()
@@ -103,7 +103,7 @@ function GameMarker:startTetris()
   
   self.isRunning = true
   toggleAllControls(false, true, false)
-  self.game.drawing:removeIntroduction()
+  removeTooltip()
   self.game:startTetris()
   -- 2505, -1653, 11.6
   local x, y, z = self.pos.x, self.pos.y, self.pos.z

@@ -400,7 +400,13 @@ function Game:reset()
   self.state.level = 1
   self.state.speed = Settings.speed
   self.state.linesForNextLevel = Settings.linesForNewLevel
+  
   self:initFallingTimer()
+  
+  if self.state.condition == StateConditions.PAUSED then
+    self.state.condition = StateConditions.RUNNING
+    startMusic()
+  end
   
   self.state.bag = Bag:new()
   
@@ -452,7 +458,7 @@ function Game:startTetris()
 end
 
 function Game:stopTetris()
+  self:pause()
 	self.drawing:stopDrawing()
-	self:pause()
 	self.controller:unbindControls()
 end
