@@ -95,19 +95,27 @@ function GameMarker:stopTetris()
   setCameraTarget(localPlayer)
   
   resetHeatHaze()
+  setPedAnimation(localPlayer)
 end
 
 function GameMarker:startTetris()
-  local x, y, z = self.pos.x, self.pos.y, self.pos.z
+  if isPedInVehicle(localPlayer) then
+    log("cant be in vehicle")
+    return
+  end
+  
   self.isRunning = true
   toggleAllControls(false, true, false)
   self.game.drawing:removeIntroduction()
   self.game:startTetris()
   -- 2505, -1653, 11.6
+  local x, y, z = self.pos.x, self.pos.y, self.pos.z
   self.cameraMover:moveCamera(x-4, y-6, z+3.9, x, y, z+3.7, 700, "OutQuad")
   --cameraMover:moveCamera(2501, -1659, 15.5, 2505, -1653, 15.3, 700, "OutQuad")
   
   setHeatHaze(0)
+  
+  setPedAnimation(localPlayer, "attractors", "Stepsit_in", -1, false, false, true, true)
 end
 
 function GameMarker:startOrStopTetris()
