@@ -17,6 +17,7 @@ CONFIG = {
 }
 
 Bindings = {
+  START_STOP = "rshift",
 	LEFT = "arrow_l",
 	RIGHT = "arrow_r",
 	DOWN = "arrow_d",
