@@ -98,6 +98,8 @@ function GameMarker:stopTetris()
   setPedAnimation(localPlayer)
 end
 
+
+
 function GameMarker:startTetris()
   if isPedInVehicle(localPlayer) then
     log("cant be in vehicle")
@@ -115,7 +117,21 @@ function GameMarker:startTetris()
   
   setHeatHaze(0)
   
+  faceLocalPlayerTo(x, y)
+    
   setPedAnimation(localPlayer, "attractors", "Stepsit_in", -1, false, false, true, true)
+end
+
+function faceLocalPlayerTo(x, y)
+  local px, py, pz = getElementPosition(localPlayer)
+  local rotZ = findRotation(px, py, x, y)
+  local rotX, rotY, _ = getElementRotation(localPlayer)
+  setElementRotation(localPlayer, rotX, rotY, rotZ, "default", true)
+end
+-- from MTA wiki Useful functions
+function findRotation(x1, y1, x2, y2) 
+    local t = -math.deg( math.atan2( x2 - x1, y2 - y1 ) )
+    return t < 0 and t + 360 or t
 end
 
 function GameMarker:startOrStopTetris()
