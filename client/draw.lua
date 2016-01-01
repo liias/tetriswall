@@ -1,6 +1,5 @@
 Drawing = {
 	state = false,
-  bindings = nil,
 	board = {
 		width = 322,
 		height = 642,
@@ -19,17 +18,44 @@ Drawing = {
 
 	-- these are for animations
 	periodStartTimes = {},
-
 	highlightedRows = {},
-
 	hardDropPositions = {},
 }
+
 
 function Drawing:new(o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
 	self.__index = self
+  
+  self.keyNamesDescription = self:manualFromKeyNames()
 	return o
+end
+
+function Drawing:manualFromKeyNames()
+  local k = {
+    START_STOP = getCommandKeyName(Commands.START_STOP),
+    LEFT = getCommandKeyName(Commands.LEFT),
+    RIGHT = getCommandKeyName(Commands.RIGHT),
+    DOWN = getCommandKeyName(Commands.DOWN),
+    HARD_DROP = getCommandKeyName(Commands.HARD_DROP),
+    ROTATE = getCommandKeyName(Commands.ROTATE),
+    HOLD = getCommandKeyName(Commands.HOLD),
+    RESET = getCommandKeyName(Commands.RESET),
+    PAUSE = getCommandKeyName(Commands.PAUSE),
+  }
+  
+  local template = [[Left: %s
+	Right: %s
+	Down: %s
+	Rotate: %s
+	Hard drop: %s
+	Pause: %s
+	Restart: %s
+	Hold: %s
+	Exit: %s]]
+  
+  return string.format(template, k.LEFT, k.RIGHT, k.DOWN, k.ROTATE, k.HARD_DROP, k.PAUSE, k.RESET, k.HOLD, k.START_STOP)
 end
 
 function Drawing:initDimensions(x, y)
@@ -112,20 +138,11 @@ function Drawing:drawTextOnTopOfTetromino(xOffset, yOffset, text)
   
   dxDrawText(text, textX, textY, textX, textY, tocolor(255, 240, 135), 1.5, "default-bold")
 end
-
+  
 function Drawing:drawButtons()
-	local x = self.board.x + self.board.width + 10
+  local x = self.board.x + self.board.width + 10
 	local y = self.board.y + 200
-	local manual = [[Left: left arrow
-	Right: right arrow
-	Down: down arrow
-	Rotate: up arrow
-	Hard drop: space
-	Pause: L
-	Restart: R
-	Hold: left shift
-	Exit: ]] .. self.bindings.START_STOP_KEY_NAME
-	dxDrawText(manual, x, y, x, y, white, 1.5)
+	dxDrawText(self.keyNamesDescription, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
 end
 
 function Drawing:drawGameOver()

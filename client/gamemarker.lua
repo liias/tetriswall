@@ -3,10 +3,7 @@ GameMarker = {
   pos = {x=0, y=0, z=0},
   isLocalPlayerInMarker = false,
   isRunning = false,
-  TETRIS_START_STOP_CMD = "whatever"
 }
-
-local START_STOP_KEY_NAME = "right shift"
 
 function GameMarker:new(o)
 	o = o or {}   -- create object if user does not provide one
@@ -48,13 +45,12 @@ function GameMarker:tetrisMarkerHit(hitPlayer, matchingDimension)
   end
 
   self.isLocalPlayerInMarker = true
-  addCommandHandler(self.TETRIS_START_STOP_CMD, function() self:startOrStopTetris() end)
-  bindKey(Bindings.START_STOP, "down", self.TETRIS_START_STOP_CMD)
+  addCommandHandler(Commands.START_STOP, bind(self.startOrStopTetris, self))
   local txt
   if self.game.state.condition == StateConditions.PAUSED then
-    txt = "Tetris paused. Press " .. START_STOP_KEY_NAME .. " to resume."
+    txt = "Tetris paused. Press " .. getCommandKeyName(Commands.START_STOP) .. " to resume."
   else
-    txt = "Start playing Tetris by pressing " .. START_STOP_KEY_NAME
+    txt = "Start playing Tetris by pressing " .. getCommandKeyName(Commands.START_STOP)
   end
   self.game.drawing:addIntroduction(txt)
 end
@@ -71,11 +67,10 @@ function GameMarker:tetrisMarkerLeave(leavePlayer, matchingDimension)
     return
   end
   self.isLocalPlayerInMarker = false
-  unbindKey(Bindings.START_STOP, "down", self.TETRIS_START_STOP_CMD)
-  removeCommandHandler(self.TETRIS_START_STOP_CMD)
+  removeCommandHandler(Commands.START_STOP)
   self.game.drawing:removeIntroduction()
 end
-
+  
 function GameMarker:localPlayerWasted(killer, weapon, bodypart)
   if self.isRunning then
     self:stopTetris()
@@ -88,7 +83,7 @@ end
 function GameMarker:stopTetris()
   self.isRunning = false
   self.game.drawing:removeIntroduction()
-  self.game.drawing:addIntroduction("Tetris paused. Press " .. START_STOP_KEY_NAME .. " to resume.")
+  self.game.drawing:addIntroduction("Tetris paused. Press " .. getCommandKeyName(Commands.START_STOP) .. " to resume.")
   self.game:stopTetris()
   toggleAllControls(true, true, false)
   self.cameraMover:cancelMovement()
@@ -116,9 +111,7 @@ function GameMarker:startTetris()
   --cameraMover:moveCamera(2501, -1659, 15.5, 2505, -1653, 15.3, 700, "OutQuad")
   
   setHeatHaze(0)
-  
   faceLocalPlayerTo(x, y)
-    
   setPedAnimation(localPlayer, "attractors", "Stepsit_in", -1, false, false, true, true)
 end
 

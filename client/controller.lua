@@ -1,5 +1,57 @@
+
+Commands = {
+  START_STOP = "tetris_start_stop",
+  LEFT = "tetris_left",
+  RIGHT = "tetris_right",
+  DOWN = "tetris_down",
+  HARD_DROP = "tetris_hard_drop",
+  ROTATE = "tetris_rotate",
+  HOLD = "tetris_hold",
+  RESET = "tetris_reset",
+  PAUSE = "tetris_pause",
+}
+    
+local DEFAULT_BINDINGS = {
+  [Commands.START_STOP] = "rshift",
+	[Commands.LEFT] = "arrow_l",
+	[Commands.RIGHT] = "arrow_r",
+	[Commands.DOWN] = "arrow_d",
+	[Commands.HARD_DROP] = "space",
+	[Commands.ROTATE] = "arrow_u",
+  [Commands.HOLD] = "lshift",
+	[Commands.RESET] = "r",
+	[Commands.PAUSE] = "l"
+}
+
+-- dont use it to bind/unbind anything
+local function getBoundKey(command)
+  local key = getKeyBoundToCommand(command)
+  if not key then
+    key = DEFAULT_BINDINGS[command]
+  end
+  return key
+end
+
+-- readable key name of key currently bound for command
+function getCommandKeyName(command)
+  return KEY_NAMES[getBoundKey(command)]
+end
+
+function bindCommand(command, keyState)
+  if not keyState then
+    keyState = "down"
+  end
+  bindKey(DEFAULT_BINDINGS[command], keyState, command, keyState)
+end
+
+function unbindCommand(command, keyState)
+  if not keyState then
+    keyState = "down"
+  end
+  unbindKey(DEFAULT_BINDINGS[command], keyState, command)
+end
+
 Controller = {
-	bindFuncs = {},
 	game = nil
 }
 
@@ -16,17 +68,6 @@ CONFIG = {
 	delayAutoScrollMs = 200
 }
 
-Bindings = {
-  START_STOP = "rshift",
-	LEFT = "arrow_l",
-	RIGHT = "arrow_r",
-	DOWN = "arrow_d",
-	HARD_DROP = "space",
-	ROTATE = "arrow_u",
-  HOLD = "lshift",
-	RESET = "r",
-	PAUSE = "l"
-}
 
 
 local GlobalMaps = {
@@ -35,20 +76,20 @@ local GlobalMaps = {
 	nameFunctionMap = {}
 }
 
-function repeatFunctionUntilKeyUp(keyState, mappingName)
+function repeatFunctionUntilKeyUp(mappingName, endRepeating)
 	if mappingName == nil then
-  		log("mappingName is nil")
-  		return
-  	end
+    log("mappingName is nil")
+    return
+  end
 
 	local timer = GlobalMaps.gTimers[mappingName]
 
-	if keyState == "up" then
-    	if isTimer(timer) then
-    		killTimer(timer)
-    	end
-    	return
-  	end
+	if endRepeating then
+    if isTimer(timer) then
+      killTimer(timer)
+    end
+    return
+  end
 
 	local fn = GlobalMaps.nameFunctionMap[mappingName]
 	if fn == nil then
@@ -59,14 +100,14 @@ function repeatFunctionUntilKeyUp(keyState, mappingName)
 	fn()
 
 	-- if first keystroke, start next ones with a delay
-  	local nextCallInMs = CONFIG.delayAutoScrollMs
-  	-- else shorter time
-  	if isTimer(timer) then
-  		nextCallInMs = CONFIG.nextAutoScrollMs
-  	end
+  local nextCallInMs = CONFIG.delayAutoScrollMs
+  -- else shorter time
+  if isTimer(timer) then
+    nextCallInMs = CONFIG.nextAutoScrollMs
+  end
 
-  	--fn = function() log(fnName) end
-  	GlobalMaps.gTimers[mappingName] = setTimer(repeatFunctionUntilKeyUp, nextCallInMs, 1, keyState, mappingName)
+  --fn = function() log(fnName) end
+  GlobalMaps.gTimers[mappingName] = setTimer(repeatFunctionUntilKeyUp, nextCallInMs, 1, mappingName, false)
 end
 
 function Controller:hardDrop()
@@ -90,71 +131,50 @@ function Controller:pause()
 end
 
 
-
-
 -- repeatable functions, used by setTimer
 function Controller:initNameFunctionMap() 
 	GlobalMaps.nameFunctionMap = {
-		moveLeft = function() 
+		[Commands.LEFT] = function() 
       self.game:moveLeft() 
     end,
-		moveRight = function()
+		[Commands.RIGHT] = function()
       self.game:moveRight() 
     end,
-		moveDown = function() 
+		[Commands.DOWN] = function() 
       self.game:moveDown() 
     end
 	}
 end
 
+function Controller:repeatFunc(command, keyState)
+  repeatFunctionUntilKeyUp(command, keyState == "up") 
+end
+  
+function Controller:handleCmd(command, methodReference)
+  addCommandHandler(command, bind(methodReference, self))
+end
+  
 function Controller:bindControls()
 	self:initNameFunctionMap()
+  
+  self:handleCmd(Commands.LEFT, self.repeatFunc)
+  self:handleCmd(Commands.RIGHT, self.repeatFunc)
+  self:handleCmd(Commands.DOWN, self.repeatFunc)
 
-	self.bindFuncs.left = function(key, keyState)
-		repeatFunctionUntilKeyUp(keyState, "moveLeft")
-	end
-	self.bindFuncs.right = function(key, keyState)
-		repeatFunctionUntilKeyUp(keyState, "moveRight")
-	end
-	self.bindFuncs.down = function(key, keyState)
-		repeatFunctionUntilKeyUp(keyState, "moveDown")
-	end
-
-	self.bindFuncs.hardDrop = function(key, keyState) 
-		self:hardDrop()
-	end
-	self.bindFuncs.rotate = function(key, keyState) 
-		self:rotate()
-	end
-  self.bindFuncs.hold = function(key, keyState) 
-		self:hold()
-	end
-	self.bindFuncs.reset = function(key, keyState) 
-		self:reset()
-	end
-	self.bindFuncs.pause = function(key, keyState) 
-		self:pause()
-	end
-
-	bindKey(Bindings.LEFT, "both", self.bindFuncs.left)
-	bindKey(Bindings.RIGHT, "both", self.bindFuncs.right)
-	bindKey(Bindings.DOWN, "both", self.bindFuncs.down)
-
-	bindKey(Bindings.HARD_DROP, "down", self.bindFuncs.hardDrop)
-	bindKey(Bindings.ROTATE, "down", self.bindFuncs.rotate)
-  bindKey(Bindings.HOLD, "down", self.bindFuncs.hold)
-	bindKey(Bindings.RESET, "down", self.bindFuncs.reset)
-	bindKey(Bindings.PAUSE, "down", self.bindFuncs.pause)
+  self:handleCmd(Commands.HARD_DROP, self.hardDrop)
+  self:handleCmd(Commands.ROTATE, self.rotate)
+  self:handleCmd(Commands.HOLD, self.hold)
+  self:handleCmd(Commands.RESET, self.reset)
+  self:handleCmd(Commands.PAUSE, self.pause)
 end
 
 function Controller:unbindControls()
-	unbindKey(Bindings.LEFT, "both", self.bindFuncs.left)
-	unbindKey(Bindings.RIGHT, "both", self.bindFuncs.right)
-	unbindKey(Bindings.DOWN, "both", self.bindFuncs.down)
-  
-	unbindKey(Bindings.HARD_DROP, "down", self.bindFuncs.hardDrop)
-	unbindKey(Bindings.ROTATE, "down", self.bindFuncs.rotate)
-  unbindKey(Bindings.HOLD, "down", self.bindFuncs.hold)
-	unbindKey(Bindings.RESET, "down", self.bindFuncs.reset)
-	unbindKey(Bindings.PAUSE, "down", self.bindFuncs.pause)
+  removeCommandHandler(Commands.LEFT)
+  removeCommandHandler(Commands.RIGHT)
+  removeCommandHandler(Commands.DOWN)
+  removeCommandHandler(Commands.HARD_DROP)
+  removeCommandHandler(Commands.ROTATE)
+  removeCommandHandler(Commands.HOLD)
+  removeCommandHandler(Commands.RESET)
+  removeCommandHandler(Commands.PAUSE)
 end
