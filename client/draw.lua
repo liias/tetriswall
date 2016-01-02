@@ -249,7 +249,6 @@ function Drawing:drawDxRect(length, xOffset, yOffset, color)
 	dxDrawLine(topRight[1], topRight[2], bottomRight[1], bottomRight[2], color) -- right line
 	dxDrawLine(bottomRight[1], bottomRight[2], bottomLeft[1], bottomLeft[2], color) -- bottom line
 	dxDrawLine(bottomLeft[1], bottomLeft[2], topLeft[1], topLeft[2], color) -- left line
-
 end
 
 
@@ -331,14 +330,16 @@ function Drawing:drawHardDrop()
 	local board = self.board
 	local length = self.board.rectangle.length
 	local x = board.tetrominoX+info.x*length
-	local toY = info.toY -2
+	local toY = info.toY - 2
 	local fromY = math.max(info.fromY - 2, 0)
-	local height = toY - fromY + info.tHeight
 	local y = board.tetrominoY + fromY*length
 
-	local color = colorFromRgba(info.rgb, 60)
-	-- todo: draw effect only to rectangles up of tetromino, and make tetromino brighter
-	dxDrawRectangle(x, y, info.tWidth*length, height*length, color)
+  local width = info.tWidth * length
+  local height = (toY - fromY + info.tHeight) * length
+  
+  local color = colorFromRgba(info.rgb, 250)
+  -- todo: draw effect only to rectangles up of tetromino, and make tetromino brighter
+  dxDrawImage(x, y, width, height, "client/img/gradient.png", 0, 0, 0, color)
 end
 
 function contains(thelist, search)

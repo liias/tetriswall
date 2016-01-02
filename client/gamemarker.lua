@@ -112,6 +112,9 @@ function GameMarker:startTetris()
   
   setHeatHaze(0)
   faceLocalPlayerTo(x, y)
+  
+  
+  
   setPedAnimation(localPlayer, "attractors", "Stepsit_in", -1, false, false, true, true)
 end
 

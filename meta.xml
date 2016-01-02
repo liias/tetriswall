@@ -21,6 +21,7 @@
 	<file src="client/img/grid322x642.png" type="client" />
 	<file src="client/img/tetrominopiece32.png" type="client" />
   <file src="client/img/blip_tetris.png" type="client" />
+  <file src="client/img/gradient.png" type="client" />
   
 	<file src="client/shaders/texture_replace.fx" type="client" />
   <file src="client/shaders/blip_texture_replace.fx" type="client" />
