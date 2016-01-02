@@ -28,10 +28,12 @@ function Tetromino:setId(id)
 	self.shadowColor = colorFromRgba(rgb, SHADOW_ALPHA)
 end
 
-function Tetromino:getNextRotationIndex()
-	local newRotationIndex = self.rotationIndex + 1
+function Tetromino:getRotationIndexWithAdded(addedRotation)
+  local newRotationIndex = self.rotationIndex + addedRotation
 	if newRotationIndex > 4 then
 		newRotationIndex = 1
+  elseif newRotationIndex < 1 then
+    newRotationIndex = 4
 	end
 	return newRotationIndex
 end

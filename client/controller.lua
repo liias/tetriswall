@@ -6,7 +6,8 @@ Commands = {
   RIGHT = "Move tetromino right",
   DOWN = "Soft drop tetromino",
   HARD_DROP = "Hard drop tetromino",
-  ROTATE = "Rotate tetromino right",
+  ROTATE_RIGHT = "Rotate tetromino right",
+  ROTATE_LEFT = "Rotate tetromino left",
   HOLD = "Hold tetromino",
   RESET = "Start new Tetris game",
   TOGGLE_PAUSE = "Toggle pause for Tetris game",
@@ -21,7 +22,8 @@ local DEFAULT_BINDINGS = {
 	[Commands.RIGHT] = "arrow_r",
 	[Commands.DOWN] = "arrow_d",
 	[Commands.HARD_DROP] = "space",
-	[Commands.ROTATE] = "arrow_u",
+	[Commands.ROTATE_RIGHT] = "arrow_u",
+  [Commands.ROTATE_LEFT] = "rctrl",
   [Commands.HOLD] = "lshift",
 	[Commands.RESET] = "r",
 	[Commands.TOGGLE_PAUSE] = "l"
@@ -124,8 +126,12 @@ function Controller:hardDrop()
 	self.game:hardDrop()
 end
 
-function Controller:rotate()
+function Controller:rotateRight()
 	self.game:rotateRight()
+end
+
+function Controller:rotateLeft()
+	self.game:rotateLeft()
 end
 
 function Controller:hold()
@@ -175,7 +181,8 @@ function Controller:bindControls()
   self:handleCmd(Commands.DOWN, self.repeatFunc)
 
   self:handleCmd(Commands.HARD_DROP, self.hardDrop)
-  self:handleCmd(Commands.ROTATE, self.rotate)
+  self:handleCmd(Commands.ROTATE_RIGHT, self.rotateRight)
+  self:handleCmd(Commands.ROTATE_LEFT, self.rotateLeft)
   self:handleCmd(Commands.HOLD, self.hold)
   self:handleCmd(Commands.RESET, self.reset)
   self:handleCmd(Commands.TOGGLE_PAUSE, self.togglePause)
@@ -189,7 +196,8 @@ function Controller:unbindControls()
   removeCommandHandler(Commands.RIGHT)
   removeCommandHandler(Commands.DOWN)
   removeCommandHandler(Commands.HARD_DROP)
-  removeCommandHandler(Commands.ROTATE)
+  removeCommandHandler(Commands.ROTATE_RIGHT)
+  removeCommandHandler(Commands.ROTATE_LEFT)
   removeCommandHandler(Commands.HOLD)
   removeCommandHandler(Commands.RESET)
   removeCommandHandler(Commands.TOGGLE_PAUSE)

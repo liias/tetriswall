@@ -79,7 +79,16 @@ function Game:getRowWithFloorKick(shape, row, column)
   return row
 end
 
-function Game:move(columnOffset, rowOffset, rotate)
+function Game:move(columnOffset, rowOffset)
+  return self:moveOrRotate(columnOffset, rowOffset)
+end
+
+function Game:rotate(addedRotation)
+  return self:moveOrRotate(0, 0, addedRotation)
+end
+
+-- addedRotation should be nil, 1 or -1
+function Game:moveOrRotate(columnOffset, rowOffset, addedRotation)
   if not self:isRunning() then
     return false
   end
@@ -93,8 +102,8 @@ function Game:move(columnOffset, rowOffset, rotate)
 	local column = t.xOffset+columnOffset
 	local rotationIndex = t.rotationIndex
   
-	if rotate then
-		rotationIndex = t:getNextRotationIndex()
+	if addedRotation then
+		rotationIndex = t:getRotationIndexWithAdded(addedRotation)
     local shape = t.rotations[rotationIndex]
     column = self:getColumnWithWallKick(shape, row, column)
     row = self:getRowWithFloorKick(shape, row, column)
@@ -123,7 +132,13 @@ function Game:moveRight()
 end
 
 function Game:rotateRight()
-	if self:move(0, 0, true) then
+	if self:rotate(1) then
+    playAudioRotate()
+  end
+end
+
+function Game:rotateLeft()
+	if self:rotate(-1) then
     playAudioRotate()
   end
 end

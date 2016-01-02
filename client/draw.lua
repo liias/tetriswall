@@ -43,7 +43,8 @@ function Drawing:manualFromKeyNames()
     RIGHT = commandKey(Commands.RIGHT),
     DOWN = commandKey(Commands.DOWN),
     HARD_DROP = commandKey(Commands.HARD_DROP),
-    ROTATE = commandKey(Commands.ROTATE),
+    ROTATE_RIGHT = commandKey(Commands.ROTATE_RIGHT),
+    ROTATE_LEFT = commandKey(Commands.ROTATE_LEFT),
     HOLD = commandKey(Commands.HOLD),
     RESET = commandKey(Commands.RESET),
     PAUSE = commandKey(Commands.TOGGLE_PAUSE),
@@ -59,7 +60,7 @@ Restart: %s
 Hold: %s
 Exit: %s]]
   
-  return string.format(template, k.LEFT, k.RIGHT, k.DOWN, k.ROTATE, k.HARD_DROP, k.PAUSE, k.RESET, k.HOLD, k.START_STOP)
+  return string.format(template, k.LEFT, k.RIGHT, k.DOWN, k.ROTATE_RIGHT, k.HARD_DROP, k.PAUSE, k.RESET, k.HOLD, k.START_STOP)
 end
 
 function Drawing:initDimensions(x, y)
