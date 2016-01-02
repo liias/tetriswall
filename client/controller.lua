@@ -46,7 +46,7 @@ function bindCommand(command, keyState)
     keyState = "down"
   end
   
-  -- add commandKeyState only if "up"
+  -- add commandKeyState only if "up", so that in MTA Binds menu there would be no arguments
   local commandKeyState = nil
   if keyState == "up" then
     commandKeyState = "up"

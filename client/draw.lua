@@ -71,13 +71,6 @@ function Drawing:initDimensions(x, y)
 	self.screenWidth, self.screenHeight = guiGetScreenSize()
 end
 
-function Drawing:drawScore()
-	local x = self.board.x + 7
-	local y = self.board.y + self.board.height + 10
-	local txt = "Score: #FFFF00" .. self.state.score .. "#FFFFFF Level: #FFFF00" .. self.state.level .. "#FFFFFF Lines to clear: #FFFF00" .. self.state.linesForNextLevel
-  dxDrawText(txt, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
-end
-
 function Drawing:startFourRowsClear()
 	-- alternatively could set highlightedEndTime and highlightedCallback
 	-- 200 + 200 + 200 + 200 + 100
@@ -142,14 +135,35 @@ function Drawing:drawTextOnTopOfTetromino(xOffset, yOffset, text)
   
   dxDrawText(text, textX, textY, textX, textY, tocolor(255, 240, 135), 1.5, "default-bold")
 end
+
+function Drawing:drawScore()
+  local x = self.board.x + self.board.width + 10
+	local y = self.board.y + 190
   
+  dxDrawText("Level", x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+  y = y + 20
+  dxDrawText(self.state.level, x, y, x, y, tocolor(255,255,0), 2, "default-bold", "left", "top", false, false, false, true)
+
+  y = y + 30
+  dxDrawText("Goal", x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+  y = y + 20
+  dxDrawText(self.state.linesForNextLevel, x, y, x, y, tocolor(255,255,0), 2, "default-bold", "left", "top", false, false, false, true)
+
+  y = y + 30
+  dxDrawText("Score", x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+  y = y + 20
+  dxDrawText(self.state.score, x, y, x, y, tocolor(255,255,0), 2, "default-bold", "left", "top", false, false, false, true)
+end
+
 function Drawing:drawButtons()
   local x = self.board.x + self.board.width + 10
-	local y = self.board.y + 200
-	dxDrawText(self.keyNamesDescription, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+	local y = self.board.y + 350
   
+	dxDrawText(self.keyNamesDescription, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+
+
   if self.state.condition == StateConditions.PAUSED then
-    dxDrawText("PAUSED", x, y+300, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
+    dxDrawText("PAUSED", x, y+250, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
   end
 end
 
