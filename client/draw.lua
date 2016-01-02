@@ -403,7 +403,7 @@ function Drawing:flashRemovableRows(rowIndexes, callback)
 	end
 	-- alternatively could set highlightedEndTime and highlightedCallback
 	-- 200 + 200 + 200 + 200 + 100
-	self:drawForPeriod("flashRemovableRows", endAnimation, 500)
+	self:drawForPeriod("flashRemovableRows", endAnimation, 200)
 end
 
 function Drawing:drawHardDropEffect(tetromino, fromYOffset)
