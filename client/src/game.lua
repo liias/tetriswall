@@ -39,6 +39,7 @@ function Game:new(o)
 	}
   o.drawing = nil
   
+  o.recording = false
   o.history = {}
 	return o
 end
@@ -186,16 +187,13 @@ function Game:setShapeAndPosition(rotationIndex, row, column)
 	t.rotationIndex = rotationIndex
 	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
   
-  --self:recordMove()
+  if self.recording then
+    self:recordMove()
+  end
   
   -- todo: perhaps dont do this if hard dropped?
   t:interruptLanding()
 	return true
-end
-
-function Game:recordMove()
-  local t = self.state.activeTetromino
-  table.insert(self.history, {getTickCount(), t.id, t.xOffset, t.yOffset, t.rotationIndex})
 end
 
 -- try moving down 1 from current
@@ -361,15 +359,83 @@ function Game:spawnById(id)
     local resetKeyName = capitalize(getCommandKeyName(Commands.RESET))
 		outputChatBox("Tetris: GAME OVER! Press ".. resetKeyName .." to restart the game")
     playAudioTheEnd()
-    --self:printHistoryToLog()
+    self:replayFromHistory()
 		return false
 	end
 
 	self.state.activeTetromino = t
 end
 
+
+function Game:playHistoryItem(h)
+  local id = h[2]
+  local column = h[3]
+  local row = h[4]
+  local rotationIndex = h[5]
+  
+  --log(h[1], h[2], h[3], h[4], h[5])
+
+  local t = self:newTetrominoForId(id)
+  --t.lowestValidRow = self.state.grid:getLowestValidRow(t)
+
+  self.state.activeTetromino = t
+
+  self:setShapeAndPosition(rotationIndex, row, column)
+  self:tryLanding(false)
+end
+
+Game.rf = false
+  
+function Game:replayFromHistory()
+  -- to be sure we are not recording the replay itself
+  self.recording = false
+  
+  log("starting to replay")
+  self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
+  local replayStartTime = getTickCount()
+  local i = 0
+  
+  --1 22
+  --2 34
+  --3 37
+  --4 48
+  
+      
+  --... 21, 22, 23, ..., 33, 34, 35, 36, 37, 38, ...
+  -- but do each step only once!
+  
+  
+  local function renderReplay()
+    local delta = getTickCount() - replayStartTime
+    
+    if i < #self.history then
+      local nextH = self.history[i+1]
+      local nextDelta = nextH[1]
+      if delta >= nextDelta then
+        local h = nextH
+        self:playHistoryItem(h)
+        i = i + 1
+      end
+    else
+      log("trying to stop")
+      removeEventHandler("onClientRender", root, renderReplay)
+      return
+    end
+  end
+  
+  addEventHandler("onClientRender", root, renderReplay)
+end
+
+function Game:recordMove()
+  local t = self.state.activeTetromino
+  local delta = getTickCount()-self.startTime
+  table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
+  --table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
+end
+
+    --self:printHistoryToLog()
 function Game:printHistoryToLog()
-  for _, h in ipairs(self.history) do
+  for d, h in ipairs(self.history) do
     log(h[1], h[2], h[3], h[4], h[5])
     --{getTickCount(), t.id, t.xOffset, t.yOffset, t.rotationIndex})
   end
@@ -434,6 +500,10 @@ function Game:reset()
   self.state.linesForNextLevel = Settings.linesForNewLevel
   
   self:initFallingTimer()
+  
+  self.recording = true
+  self.history = {}
+  self.startTime = getTickCount()
   
   if self.state.condition == StateConditions.PAUSED then
     self.state.condition = StateConditions.RUNNING
