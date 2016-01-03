@@ -14,6 +14,14 @@ StateConditions = {
 	NOT_STARTED = "not_started"
 }
 
+local MoveType = {
+  LEFT_RIGHT = 1,
+  ROTATE = 2,
+  SOFT_DROP = 3,
+  HARD_DROP = 4,
+  AUTO_DOWN = 5
+}
+
 Game = {
 }
 
@@ -82,16 +90,17 @@ function Game:getRowWithFloorKick(shape, row, column)
   return row
 end
 
-function Game:move(columnOffset, rowOffset)
-  return self:moveOrRotate(columnOffset, rowOffset)
+function Game:move(columnOffset, rowOffset, moveType)
+  return self:moveOrRotate(columnOffset, rowOffset, false, moveType)
 end
 
 function Game:rotate(addedRotation)
-  return self:moveOrRotate(0, 0, addedRotation)
+  return self:moveOrRotate(0, 0, addedRotation, MoveType.ROTATE)
 end
 
+
 -- addedRotation should be nil, 1 or -1
-function Game:moveOrRotate(columnOffset, rowOffset, addedRotation)
+function Game:moveOrRotate(columnOffset, rowOffset, addedRotation, moveType)
   if not self:isRunning() then
     return false
   end
@@ -112,38 +121,32 @@ function Game:moveOrRotate(columnOffset, rowOffset, addedRotation)
     row = self:getRowWithFloorKick(shape, row, column)
   end
   
-  return self:setShapeAndPosition(rotationIndex, row, column)
+  return self:setShapeAndPosition(rotationIndex, row, column, moveType)
 end
 
+
 -- no sound on automatic falling
-function Game:moveDown(noSound)
-	if self:move(0, 1) and not noSound then
-    playAudioMove()
-  end  
+function Game:moveDown(moveType)
+  if not moveType then
+    moveType = MoveType.SOFT_DROP
+  end
+	self:move(0, 1, moveType)
 end
 
 function Game:moveLeft()
-	if self:move(-1, 0) then
-    playAudioMove()
-  end
+	self:move(-1, 0, MoveType.LEFT_RIGHT)
 end
 
 function Game:moveRight()
-	if self:move(1, 0) then
-    playAudioMove()
-  end
+	self:move(1, 0, MoveType.LEFT_RIGHT)
 end
 
 function Game:rotateRight()
-	if self:rotate(1) then
-    playAudioRotate()
-  end
+	self:rotate(1)
 end
 
 function Game:rotateLeft()
-	if self:rotate(-1) then
-    playAudioRotate()
-  end
+	self:rotate(-1)
 end
 
 function Game:hardDrop()
@@ -155,29 +158,24 @@ function Game:hardDrop()
 	if not t then
 		return
 	end
-	local originalYOffset = t.yOffset
-	local wasDropped = self:setShapeAndPosition(t.rotationIndex, t.lowestValidRow, t.xOffset)
-
-	if wasDropped then
-		self.drawing:drawHardDropEffect(t, originalYOffset)
-		self:tryLanding(false)
-    playAudioHardDrop()
-	else
-		log("ok, hard drop failed. how can that happen?")
-	end
+	
+	local wasDropped = self:setShapeAndPosition(t.rotationIndex, t.lowestValidRow, t.xOffset, MoveType.HARD_DROP)
 end
 
 function Game:isRunning()
 	return self.state.condition == StateConditions.RUNNING
 end
 
-function Game:setShapeAndPosition(rotationIndex, row, column)
+function Game:setShapeAndPosition(rotationIndex, row, column, moveType)
 	if not self:isRunning() then
 		return false
 	end
 
 	local t = self.state.activeTetromino
+  local originalYOffset = t.yOffset
+
 	local shape = t.rotations[rotationIndex]
+  
 	if not self.state.grid:checkForCollision(shape, row, column) then
 		--log("nope, cant move here")
 		return false
@@ -188,11 +186,23 @@ function Game:setShapeAndPosition(rotationIndex, row, column)
 	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
   
   if self.recording then
-    self:recordMove()
+    self:recordMove(moveType)
   end
   
-  -- todo: perhaps dont do this if hard dropped?
-  t:interruptLanding()
+  if moveType == MoveType.HARD_DROP then
+		self.drawing:drawHardDropEffect(t, originalYOffset)
+		self:tryLanding(false)
+    playAudioHardDrop()
+  else
+    t:interruptLanding()
+    
+    if moveType == MoveType.LEFT_RIGHT or moveType == MoveType.SOFT_DROP then
+      playAudioMove()
+    elseif moveType == MoveType.ROTATE then
+      playAudioRotate()
+    end
+	end
+  
 	return true
 end
 
@@ -328,7 +338,7 @@ function Game:handleLanding()
 end
 
 function Game:fallingTick()
-	self:moveDown(true)
+	self:moveDown(MoveType.AUTO_DOWN)
   self:tryLanding(true)
 end
 
@@ -372,7 +382,7 @@ function Game:playHistoryItem(h)
   local column = h[3]
   local row = h[4]
   local rotationIndex = h[5]
-  
+  local moveType = h[6]
   --log(h[1], h[2], h[3], h[4], h[5])
 
   local t = self:newTetrominoForId(id)
@@ -380,7 +390,7 @@ function Game:playHistoryItem(h)
 
   self.state.activeTetromino = t
 
-  self:setShapeAndPosition(rotationIndex, row, column)
+  self:setShapeAndPosition(rotationIndex, row, column, moveType)
   self:tryLanding(false)
 end
 
@@ -426,10 +436,10 @@ function Game:replayFromHistory()
   addEventHandler("onClientRender", root, renderReplay)
 end
 
-function Game:recordMove()
+function Game:recordMove(moveType)
   local t = self.state.activeTetromino
   local delta = getTickCount()-self.startTime
-  table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
+  table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex, moveType})
   --table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
 end
 
