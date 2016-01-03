@@ -350,7 +350,8 @@ function Game:spawnById(id)
 
 	if not self.state.grid:checkForCollision(t:getActiveShape(), t.yOffset, t.xOffset) then
 		self.drawing:setGameOver(true)
-		outputChatBox("Tetris: GAME OVER! Press R to restart the game")
+    local resetKeyName = capitalize(getCommandKeyName(Commands.RESET))
+		outputChatBox("Tetris: GAME OVER! Press ".. resetKeyName .." to restart the game")
     playAudioTheEnd()
 		return false
 	end

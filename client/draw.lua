@@ -28,16 +28,17 @@ function Drawing:new(o)
 	setmetatable(o, self)
 	self.__index = self
   
+  self:updateKeyNames()
   self.keyNamesDescription = self:manualFromKeyNames()
 	return o
 end
 
-function Drawing:manualFromKeyNames()
-  function commandKey(command)
-    return "#FFFF66" .. capitalize(getCommandKeyName(command)) .. "#FFFFFF"
+function Drawing:updateKeyNames()
+  local function commandKey(command)
+    return capitalize(getCommandKeyName(command))
   end
   
-  local k = {
+  self.keyNames = {
     START_STOP = commandKey(Commands.START_STOP),
     LEFT = commandKey(Commands.LEFT),
     RIGHT = commandKey(Commands.RIGHT),
@@ -49,7 +50,15 @@ function Drawing:manualFromKeyNames()
     RESET = commandKey(Commands.RESET),
     PAUSE = commandKey(Commands.TOGGLE_PAUSE),
   }
+end
 
+function Drawing:manualFromKeyNames()
+  local k = {}
+
+  for key, value in pairs(self.keyNames) do
+    k[key] = "#FFFF66" .. value .. "#FFFFFF"
+  end   
+   
   local template = [[
 Move: 
 ${LEFT} and ${RIGHT}
@@ -174,7 +183,7 @@ function Drawing:drawGameOver()
 	local x = self.board.x + 10
 	local y = self.board.y + self.board.height - 90
 	
-	dxDrawText("Game Over.\nPress R to restart.", x, y, x, y, white, 3)
+	dxDrawText("Game Over.\nPress " .. self.keyNames.RESET .." to restart.", x, y, x, y, white, 3)
 end
 
 function Drawing:getFullWidth()
