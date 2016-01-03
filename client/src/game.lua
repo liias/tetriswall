@@ -25,6 +25,8 @@ local MoveType = {
 Game = {
 }
 
+
+
 function Game:new(o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
@@ -126,11 +128,8 @@ end
 
 
 -- no sound on automatic falling
-function Game:moveDown(moveType)
-  if not moveType then
-    moveType = MoveType.SOFT_DROP
-  end
-	self:move(0, 1, moveType)
+function Game:moveDown()
+	self:move(0, 1, MoveType.SOFT_DROP)
 end
 
 function Game:moveLeft()
@@ -176,34 +175,40 @@ function Game:setShapeAndPosition(rotationIndex, row, column, moveType)
 
 	local shape = t.rotations[rotationIndex]
   
-	if not self.state.grid:checkForCollision(shape, row, column) then
-		--log("nope, cant move here")
-		return false
-	end
-	t.xOffset = column
-	t.yOffset = row
-	t.rotationIndex = rotationIndex
-	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
+  local success = false
   
-  if self.recording then
-    self:recordMove(moveType)
-  end
-  
-  if moveType == MoveType.HARD_DROP then
-		self.drawing:drawHardDropEffect(t, originalYOffset)
-		self:tryLanding(false)
-    playAudioHardDrop()
-  else
-    t:interruptLanding()
+	if self.state.grid:checkForCollision(shape, row, column) then
+		success = true
+    t.xOffset = column
+    t.yOffset = row
+    t.rotationIndex = rotationIndex
+    t.lowestValidRow = self.state.grid:getLowestValidRow(t)
     
-    if moveType == MoveType.LEFT_RIGHT or moveType == MoveType.SOFT_DROP then
-      playAudioMove()
-    elseif moveType == MoveType.ROTATE then
-      playAudioRotate()
+    if self.recording then
+      self:recordMove(moveType)
     end
-	end
-  
-	return true
+    
+    if moveType == MoveType.HARD_DROP then
+      self.drawing:drawHardDropEffect(t, originalYOffset)
+      self:tryLanding(false)
+      playAudioHardDrop()
+    else
+      t:interruptLanding()
+      
+      if moveType == MoveType.LEFT_RIGHT or moveType == MoveType.SOFT_DROP then
+        playAudioMove()
+      elseif moveType == MoveType.ROTATE then
+        playAudioRotate()
+      end
+    end
+    success = true
+  end
+
+  if moveType == MoveType.AUTO_DOWN then
+    self:tryLanding(true)
+  end
+      
+	return success
 end
 
 -- try moving down 1 from current
@@ -337,11 +342,6 @@ function Game:handleLanding()
 	end
 end
 
-function Game:fallingTick()
-	self:moveDown(MoveType.AUTO_DOWN)
-  self:tryLanding(true)
-end
-
 function Game:initFallingTimer()
   if self.state.fallingTimer then
 		killTimer(self.state.fallingTimer)
@@ -349,7 +349,7 @@ function Game:initFallingTimer()
 	end
   
 	local tickFunc = function()
-		self:fallingTick()
+    self:move(0, 1, MoveType.AUTO_DOWN)
 	end
 	self.state.fallingTimer = setTimer(tickFunc, self.state.speed, 0)
 end
@@ -391,7 +391,6 @@ function Game:playHistoryItem(h)
   self.state.activeTetromino = t
 
   self:setShapeAndPosition(rotationIndex, row, column, moveType)
-  self:tryLanding(false)
 end
 
 Game.rf = false
@@ -399,6 +398,7 @@ Game.rf = false
 function Game:replayFromHistory()
   -- to be sure we are not recording the replay itself
   self.recording = false
+  self:initState()
   
   log("starting to replay")
   self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
@@ -438,7 +438,7 @@ end
 
 function Game:recordMove(moveType)
   local t = self.state.activeTetromino
-  local delta = getTickCount()-self.startTime
+  local delta = getTickCount()-self.historyStartTime
   table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex, moveType})
   --table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
 end
@@ -499,35 +499,34 @@ function Game:holdCurrentTetromino()
 	end
 end
 
-function Game:reset()
-	self.drawing:setGameOver(false)
-
+function Game:initState()
   self.state.heldTetrominoId = nil
 	self.state.score = 0
   self.state.clearedLines = 0
   self.state.level = 1
   self.state.speed = Settings.speed
   self.state.linesForNextLevel = Settings.linesForNewLevel
-  
+  self.state.activeTetromino = false
+  self.state.bag = Bag:new()
+  self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
+end
+
+function Game:reset()
+	self.drawing:setGameOver(false)
+
+  self:initState()
   self:initFallingTimer()
   
   self.recording = true
   self.history = {}
-  self.startTime = getTickCount()
+  self.historyStartTime = getTickCount()
   
   if self.state.condition == StateConditions.PAUSED then
     self.state.condition = StateConditions.RUNNING
     startMusic()
   end
   
-  self.state.bag = Bag:new()
-  
 	self:generateRandomTetrominoIds(3)
-
-	if self.state.activeTetromino then
-		self.state.activeTetromino = false
-	end
-	self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
 
 	self:giveNewTetromino(true)
 end
