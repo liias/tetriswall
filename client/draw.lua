@@ -34,7 +34,7 @@ end
 
 function Drawing:manualFromKeyNames()
   function commandKey(command)
-    return "#FFFF00" .. capitalize(getCommandKeyName(command)) .. "#FFFFFF"
+    return "#FFFF66" .. capitalize(getCommandKeyName(command)) .. "#FFFFFF"
   end
   
   local k = {
@@ -50,17 +50,19 @@ function Drawing:manualFromKeyNames()
     PAUSE = commandKey(Commands.TOGGLE_PAUSE),
   }
 
-  local template = [[Left: %s
-Right: %s
-Down: %s
-Rotate: %s
-Hard drop: %s
-Pause: %s
-Restart: %s
-Hold: %s
-Exit: %s]]
-  
-  return string.format(template, k.LEFT, k.RIGHT, k.DOWN, k.ROTATE_RIGHT, k.HARD_DROP, k.PAUSE, k.RESET, k.HOLD, k.START_STOP)
+  local template = [[
+Move: 
+${LEFT} and ${RIGHT}
+Rotate: 
+${ROTATE_RIGHT} and ${ROTATE_LEFT}
+Soft drop: ${DOWN}
+Hard drop: ${HARD_DROP}
+Hold: ${HOLD}
+Pause: ${PAUSE}
+Restart: ${RESET}
+Exit: ${START_STOP}]]
+
+  return interp(template, k)
 end
 
 function Drawing:initDimensions(x, y)

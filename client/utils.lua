@@ -25,6 +25,12 @@ function bind(func, ...)
     end
 end
 
+-- like string.format() but with named parameters
+-- http://lua-users.org/wiki/StringInterpolation
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+  
 function getRectangleEdges(xOffset, yOffset)
 	local topLeftX = xOffset
 	local topLeftY = yOffset
