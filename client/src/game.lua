@@ -38,6 +38,8 @@ function Game:new(o)
     bag = false
 	}
   o.drawing = nil
+  
+  o.history = {}
 	return o
 end
 
@@ -184,11 +186,17 @@ function Game:setShapeAndPosition(rotationIndex, row, column)
 	t.rotationIndex = rotationIndex
 	t.lowestValidRow = self.state.grid:getLowestValidRow(t)
   
+  --self:recordMove()
+  
   -- todo: perhaps dont do this if hard dropped?
   t:interruptLanding()
 	return true
 end
 
+function Game:recordMove()
+  local t = self.state.activeTetromino
+  table.insert(self.history, {getTickCount(), t.id, t.xOffset, t.yOffset, t.rotationIndex})
+end
 
 -- try moving down 1 from current
 function Game:tryLanding(allowLockDelay)
@@ -353,10 +361,18 @@ function Game:spawnById(id)
     local resetKeyName = capitalize(getCommandKeyName(Commands.RESET))
 		outputChatBox("Tetris: GAME OVER! Press ".. resetKeyName .." to restart the game")
     playAudioTheEnd()
+    --self:printHistoryToLog()
 		return false
 	end
 
 	self.state.activeTetromino = t
+end
+
+function Game:printHistoryToLog()
+  for _, h in ipairs(self.history) do
+    log(h[1], h[2], h[3], h[4], h[5])
+    --{getTickCount(), t.id, t.xOffset, t.yOffset, t.rotationIndex})
+  end
 end
 
 function Game:giveNewTetromino(resetHeldTetrominoUsed)

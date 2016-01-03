@@ -100,6 +100,11 @@ function capitalize(s)
   return s:sub(1,1):upper()..s:sub(2)
 end
 
-function log(msg)
-  outputDebugString(tostring(msg))
+function log(...)  
+  local printResult = ""
+  for i, v in ipairs(arg) do
+    printResult = printResult .. tostring(v) .. " "
+  end
+  
+  outputDebugString(printResult)
 end
