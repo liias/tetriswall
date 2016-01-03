@@ -2,7 +2,7 @@ local backgroundMusic = nil
 
 local function randomFile()
   local n = math.random(1,2)
-  return "client/audio/music/fast" .. tostring(n) .. ".mp3"
+  return ASSETS_AUDIO .. "music/fast" .. tostring(n) .. ".mp3"
 end
 
 function startMusic()
@@ -17,33 +17,33 @@ function stopMusic()
 end
 
 local function playAudioSfx(soundPath)
-  playSound(soundPath)
+  playSound(ASSETS_AUDIO .. "sfx/" .. soundPath)
 end
 
 function playAudioMove()
-  playAudioSfx("client/audio/sfx/move.wav")
+  playAudioSfx("move.wav")
 end
 
 function playAudioRotate()
-  playAudioSfx("client/audio/sfx/rotate.wav")
+  playAudioSfx("rotate.wav")
 end
 
 function playAudioHardDrop()
-  playAudioSfx("client/audio/sfx/harddrop.wav")
+  playAudioSfx("harddrop.wav")
 end
 
 function playAudioHold()
-  playAudioSfx("client/audio/sfx/hold.wav")
+  playAudioSfx("hold.wav")
 end
 
 function playAudioTheEnd()
-  playAudioSfx("client/audio/sfx/theend.wav")
+  playAudioSfx("theend.wav")
 end
 
 function playAudioClearRow()
-  playAudioSfx("client/audio/sfx/rowclear.mp3")
+  playAudioSfx("rowclear.mp3")
 end
 
 function playAudioClearTetris()
-  playAudioSfx("client/audio/sfx/tetrisclear.mp3")
+  playAudioSfx("tetrisclear.mp3")
 end

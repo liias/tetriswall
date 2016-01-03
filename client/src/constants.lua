@@ -1,3 +1,6 @@
+ASSETS_IMG = "client/assets/img/"
+ASSETS_AUDIO = "client/assets/audio/"
+ASSETS_SHADERS = "client/assets/shaders/"
 
 NORMAL_ALPHA = 200
 SHADOW_ALPHA = 60

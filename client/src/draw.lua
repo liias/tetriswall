@@ -1,3 +1,4 @@
+
 Drawing = {
 	state = false,
 	board = {
@@ -199,7 +200,7 @@ function Drawing:drawBackground()
   local h = self:getFullHeight()
   dxDrawRectangle(0, 0, w, h, tocolor(0,0,0), false)
 	dxDrawRectangle(self.board.x, self.board.y, self.board.width, self.board.height, self.board.backgroundColor, false)
-	dxDrawImage(self.board.x, self.board.y, self.board.width, self.board.height, "client/img/grid322x642.png", 0, 0, 0, self.board.gridColor, false)
+	dxDrawImage(self.board.x, self.board.y, self.board.width, self.board.height, ASSETS_IMG .. "grid322x642.png", 0, 0, 0, self.board.gridColor, false)
 end
 
 function Drawing:drawRectangle(x, y, color, scale, allowOutOfBoard)
@@ -218,7 +219,7 @@ function Drawing:drawRectangle(x, y, color, scale, allowOutOfBoard)
 
 	local rectangleX = self.board.tetrominoX + x*length
 	local rectangleY = self.board.tetrominoY + y*length
-	dxDrawImage(rectangleX, rectangleY, length, length, "client/img/tetrominopiece32.png", 0, 0, 0, color, false)
+	dxDrawImage(rectangleX, rectangleY, length, length, ASSETS_IMG .. "tetrominopiece32.png", 0, 0, 0, color, false)
 end
 
 function Drawing:drawShapeAtOffset(shape, color, xOffset, yOffset, scale, allowOutOfBoard)
@@ -351,7 +352,7 @@ function Drawing:drawHardDrop()
   
   local color = colorFromRgba(info.rgb, 250)
   -- todo: draw effect only to rectangles up of tetromino, and make tetromino brighter
-  dxDrawImage(x, y, width, height, "client/img/gradient.png", 0, 0, 0, color)
+  dxDrawImage(x, y, width, height, ASSETS_IMG .. "gradient.png", 0, 0, 0, color)
 end
 
 function contains(thelist, search)
@@ -509,7 +510,7 @@ end
 
 -- targetObject can be 0
 function initShader(texture, textureName, targetObject)
-	local SHADER_FILE_PATH = "client/shaders/texture_replace.fx"
+	local SHADER_FILE_PATH = ASSETS_SHADERS .. "texture_replace.fx"
 	local SHADER_TEXTURE_VAR_NAME = "tetrisTexture"
 
 	local shader, technique = dxCreateShader(SHADER_FILE_PATH, 0, 0, false, "object")

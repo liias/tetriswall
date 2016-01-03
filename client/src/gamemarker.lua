@@ -146,7 +146,7 @@ function GameMarker:setupMarker()
   local x, y, z = self.pos.x, self.pos.y, self.pos.z
   local markerX, markerY, markerZ = x+1, y-2, z+0.9
 	self.marker = createMarker(markerX, markerY, markerZ, "cylinder", 1.0, 132, 4, 16, 200)
-  replaceBlipTexture("radar_TorenoRanch", "client/img/blip_tetris.png")
+  replaceBlipTexture("radar_TorenoRanch", ASSETS_IMG .. "blip_tetris.png")
 	createBlipAttachedTo(self.marker, 42) 	-- Toreno_ranch
   
   addEventHandler("onClientMarkerHit", self.marker, bind(self.tetrisMarkerHit, self))

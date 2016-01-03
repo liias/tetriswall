@@ -90,7 +90,7 @@ function getShapeOutline(shape)
 end
 
 function replaceBlipTexture(textureName, newImagePath)
-	local textureReplaceShader = dxCreateShader("client/shaders/blip_texture_replace.fx", 0, 0, false, "world")
+	local textureReplaceShader = dxCreateShader(ASSETS_SHADERS .. "blip_texture_replace.fx", 0, 0, false, "world")
   local texture = dxCreateTexture(newImagePath)
 	dxSetShaderValue(textureReplaceShader, "gTexture", texture)
 	engineApplyShaderToWorldTexture(textureReplaceShader, textureName)
