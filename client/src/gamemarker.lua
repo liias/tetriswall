@@ -1,22 +1,25 @@
 GameMarker = {
   game = false,
-  pos = {x=0, y=0, z=0},
-  isLocalPlayerInMarker = false,
-  isRunning = false,
 }
 
 function GameMarker:new(o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
 	self.__index = self
+  
+  o.pos = {x=0, y=0, z=0}
+  o.isLocalPlayerInMarker = false
+  o.isRunning = false
 	return o
 end
 
 function GameMarker:createTetrisWall(x, y, z)
   self.pos = {x=x, y=y,z=z}
 	local tetrisObject = self:createTetrisWallObject()
-	self.game.drawing:initDrawing("bobo_2", tetrisObject)
-	self:setupMarker()
+  self.game:initDrawingOnObject("bobo_2", tetrisObject)
+  if self.game:isLocal() then
+    self:setupMarker()
+  end
 end
 
 function GameMarker:createTetrisWallObject()
@@ -141,14 +144,14 @@ end
 function GameMarker:setupMarker()
   self.isRunning = false
   self.isLocalPlayerInMarker = false
-	self.cameraMover = CameraMover:new()
-  
+  self.cameraMover = CameraMover:new()
   local x, y, z = self.pos.x, self.pos.y, self.pos.z
   local markerX, markerY, markerZ = x+1, y-2, z+0.9
-	self.marker = createMarker(markerX, markerY, markerZ, "cylinder", 1.0, 132, 4, 16, 200)
+  self.marker = createMarker(markerX, markerY, markerZ, "cylinder", 1.0, 132, 4, 16, 200)
   replaceBlipTexture("radar_TorenoRanch", ASSETS_IMG .. "blip_tetris.png")
-	createBlipAttachedTo(self.marker, 42) 	-- Toreno_ranch
   
+  createBlipAttachedTo(self.marker, 42) 	-- Toreno_ranch
+
   addEventHandler("onClientMarkerHit", self.marker, bind(self.tetrisMarkerHit, self))
   -- when (re)starting tetriswall and player is already inside marker, 
   -- there would be no markerHit event, so calling it manually
@@ -156,7 +159,7 @@ function GameMarker:setupMarker()
   if isElementWithinMarker(localPlayer, self.marker) then
     self:tetrisMarkerHit(localPlayer, true)
   end
-  
+
   addEventHandler("onClientMarkerLeave", self.marker, bind(self.tetrisMarkerLeave, self))
   addEventHandler("onClientPlayerWasted", localPlayer, bind(self.localPlayerWasted, self))
 end

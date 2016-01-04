@@ -19,7 +19,7 @@ function Bag:new(o)
 	setmetatable(o, self)
 	self.__index = self
   
-  self.tetrominoIds = {}
+  o.tetrominoIds = {}
 	return o
 end
 

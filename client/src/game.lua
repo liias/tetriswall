@@ -50,6 +50,7 @@ function Game:new(o)
   o.drawing = nil
   
   o.recording = false
+  o.syncToServer = false
   o.history = {}
 	return o
 end
@@ -184,6 +185,18 @@ function Game:setShapeAndPosition(rotationIndex, row, column, moveType)
     t.rotationIndex = rotationIndex
     t.lowestValidRow = self.state.grid:getLowestValidRow(t)
     
+    if self.syncToServer then
+      self:sendMoveToServer(moveType)
+      
+      -- send grid sync every 5 seconds
+      local now = getTickCount()
+      if getTickCount() - self.lastGridSync >= 5000 then
+        self.lastGridSync = now
+        -- send full grid update once-in-a-while to mitigate desync
+        self:sendTetrisUpdateToServer("grid", self.state.grid.rectangles)
+      end
+    end
+  
     if self.recording then
       self:recordMove(moveType)
     end
@@ -201,7 +214,6 @@ function Game:setShapeAndPosition(rotationIndex, row, column, moveType)
         playAudioRotate()
       end
     end
-    success = true
   end
 
   if moveType == MoveType.AUTO_DOWN then
@@ -209,6 +221,36 @@ function Game:setShapeAndPosition(rotationIndex, row, column, moveType)
   end
       
 	return success
+end
+
+-- todo: not sure if should send to server on every nth ms, or immediately on every move?
+function Game:sendMoveToServer(moveType)
+  local t = self.state.activeTetromino
+  local delta = getTickCount()-self.historyStartTime
+  local moveState = {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex, moveType}
+
+  triggerServerEvent("onSendMoveToServer", resourceRoot, moveState)
+end
+
+function Game:sendTetrisUpdateToServer(eventName, ...)
+  local delta = getTickCount() - self.historyStartTime
+  local packet = {eventName, delta, unpack(arg)}
+  triggerServerEvent("onSendTetrisUpdateToServer", resourceRoot, packet)
+end
+
+function Game:recordMove(moveType)
+  local t = self.state.activeTetromino
+  local delta = getTickCount()-self.historyStartTime
+  table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex, moveType})
+  --table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
+end
+
+    --self:printHistoryToLog()
+function Game:printHistoryToLog()
+  for d, h in ipairs(self.history) do
+    log(h[1], h[2], h[3], h[4], h[5])
+    --{getTickCount(), t.id, t.xOffset, t.yOffset, t.rotationIndex})
+  end
 end
 
 -- try moving down 1 from current
@@ -325,7 +367,9 @@ function Game:handleLanding()
 		local removeRowsAndGiveNewTetromino = function()
 			--log("animation completed, giving new tetromino")
 			self.state.grid:removeRows(filledLines)
-			self:giveNewTetromino(true)
+      if self:isLocal() then
+        self:giveNewTetromino(true)
+      end
 		end
     if numberOfFilledLines == 4 then
       playAudioClearTetris()
@@ -337,16 +381,15 @@ function Game:handleLanding()
 			self.drawing:startFourRowsClear()
 		end
 	else
-		--log("no filled lines, giving new tetromino")
-		self:giveNewTetromino(true)
+    if self:isLocal() then
+      --log("no filled lines, giving new tetromino")
+      self:giveNewTetromino(true)
+    end
 	end
 end
 
 function Game:initFallingTimer()
-  if self.state.fallingTimer then
-		killTimer(self.state.fallingTimer)
-		self.state.fallingTimer = nil
-	end
+  self:killFallingTimer()
   
 	local tickFunc = function()
     self:move(0, 1, MoveType.AUTO_DOWN)
@@ -385,23 +428,25 @@ function Game:playHistoryItem(h)
   local moveType = h[6]
   --log(h[1], h[2], h[3], h[4], h[5])
 
-  local t = self:newTetrominoForId(id)
-  --t.lowestValidRow = self.state.grid:getLowestValidRow(t)
-
-  self.state.activeTetromino = t
+  -- todo
+  t = self.state.activeTetromino
+  if not t or t.id ~= id then
+    t = self:newTetrominoForId(id)
+    t.lowestValidRow = self.state.grid:getLowestValidRow(t)
+    self.state.activeTetromino = t
+  end
 
   self:setShapeAndPosition(rotationIndex, row, column, moveType)
 end
 
-Game.rf = false
   
 function Game:replayFromHistory()
   -- to be sure we are not recording the replay itself
   self.recording = false
+  self.syncToServer = false
   self:initState()
   
   log("starting to replay")
-  self.state.grid = Grid:new({rows=Settings.rows, columns=Settings.columns})
   local replayStartTime = getTickCount()
   local i = 0
   
@@ -436,40 +481,32 @@ function Game:replayFromHistory()
   addEventHandler("onClientRender", root, renderReplay)
 end
 
-function Game:recordMove(moveType)
-  local t = self.state.activeTetromino
-  local delta = getTickCount()-self.historyStartTime
-  table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex, moveType})
-  --table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
-end
 
-    --self:printHistoryToLog()
-function Game:printHistoryToLog()
-  for d, h in ipairs(self.history) do
-    log(h[1], h[2], h[3], h[4], h[5])
-    --{getTickCount(), t.id, t.xOffset, t.yOffset, t.rotationIndex})
-  end
-end
 
 function Game:giveNewTetromino(resetHeldTetrominoUsed)
 	local nextTetrominoId = table.remove(self.state.nextTetrominoIds, 1)
-	self:addRandomTetrominoIdToQueue()
+  if self:isLocal() then
+    self:addRandomTetrominoIdsToQueue(1)
+  end
 	self:spawnById(nextTetrominoId)
   
   if resetHeldTetrominoUsed then
     -- allow holding (or switching) again (once per round)
     self.state.heldTetrominoInRound = false
   end
+  
+  if self.syncToServer then
+    self:sendTetrisUpdateToServer("give", self.state.nextTetrominoIds)
+  end
 end
 
-function Game:addRandomTetrominoIdToQueue()
-	local randomTetrominoId = self.state.bag:takeNext()
-	table.insert(self.state.nextTetrominoIds, randomTetrominoId)
-end
-
-function Game:generateRandomTetrominoIds(n)
-	for i=1, n do
-		self:addRandomTetrominoIdToQueue()
+function Game:addRandomTetrominoIdsToQueue(n)
+  if not n then
+    n = 1
+  end
+  for i=1, n do
+    local randomTetrominoId = self.state.bag:takeNext()
+    table.insert(self.state.nextTetrominoIds, randomTetrominoId)
 	end
 end
 
@@ -518,15 +555,21 @@ function Game:reset()
   self:initFallingTimer()
   
   self.recording = true
+  self.syncToServer = true
+  
   self.history = {}
   self.historyStartTime = getTickCount()
+  self.lastGridSync = 0
   
   if self.state.condition == StateConditions.PAUSED then
     self.state.condition = StateConditions.RUNNING
     startMusic()
   end
   
-	self:generateRandomTetrominoIds(3)
+	self:addRandomTetrominoIdsToQueue(3)
+  if self.syncToServer then
+    self:sendTetrisUpdateToServer("start", self.state.nextTetrominoIds)
+  end
 
 	self:giveNewTetromino(true)
 end
@@ -539,19 +582,35 @@ function Game:togglePause()
 	end
 end
 
+function Game:killFallingTimer()
+  if self.state.fallingTimer then
+		killTimer(self.state.fallingTimer)
+		self.state.fallingTimer = nil
+  end
+end
+
 function Game:pause()
 	if self.state.fallingTimer then
     self.state.condition = StateConditions.PAUSED
-		killTimer(self.state.fallingTimer)
-		self.state.fallingTimer = nil
+		self:killFallingTimer()
     stopMusic()
 	end
+end
+
+function Game:isRemote()
+  return self.multiplayer
+end
+
+function Game:isLocal()
+  return not self:isRemote()
 end
 
 function Game:resume()
 	self:initFallingTimer()
   self.state.condition = StateConditions.RUNNING
-  startMusic()
+  if self:isLocal() then
+    startMusic()
+  end
 end
 
 function Game:resumeOrStart()
@@ -563,7 +622,10 @@ end
 
 -- for blip
 function Game:startTetris()
-	self.controller:bindControls()	
+  if self:isLocal() then
+    self.controller:bindControls()
+  end
+  
 	self:resumeOrStart()
 	self.drawing:startDrawing()
 end
@@ -573,3 +635,52 @@ function Game:stopTetris()
 	self.drawing:stopDrawing()
 	self.controller:unbindControls()
 end
+
+
+function Game:initDrawingOnObject(textureName, targetObject)
+	self.drawing:initDrawing(textureName, targetObject)
+  
+
+  if self:isRemote() then
+    log("adding")
+    function serverSentMove(moveState)
+      --log("Server sent: " .. moveState[6])
+      self:playHistoryItem(moveState)
+    end
+    addEventHandler("onSendMoveToClient", localPlayer, serverSentMove)
+    
+    
+    function handleUpdate(eventName, packet)
+      if eventName == "start" then
+        local nextTetrominoIds = packet[1]
+        
+        self.recording = false
+        self.syncToServer = false        
+        self:killFallingTimer()
+        self:initState()
+        self.state.condition = StateConditions.RUNNING    
+        self.state.nextTetrominoIds = nextTetrominoIds
+        self.drawing:startDrawing()
+      elseif eventName == "give" then
+        local nextTetrominoIds = packet[1]
+        self:giveNewTetromino(true)
+        self.state.nextTetrominoIds = nextTetrominoIds
+      elseif eventName == "grid" then
+        local rectangles = packet[1]
+        self.state.grid.rectangles = rectangles
+      end
+    end
+    
+    function serverSentUpdate(packet)
+      local eventName = table.remove(packet, 1)
+      local delta = table.remove(packet, 1)
+      log("Server sent update ", eventName)
+      handleUpdate(eventName, packet)
+    end
+    addEventHandler("onSendTetrisUpdateToClient", localPlayer, serverSentUpdate)
+  end
+end
+
+
+addEvent("onSendMoveToClient", true)
+addEvent("onSendTetrisUpdateToClient", true)

@@ -1,36 +1,38 @@
 
 Drawing = {
-	state = false,
-	board = {
-		width = 322,
-		height = 642,
-		gridColor = tocolor(255, 100, 255, 100),
-		backgroundColor = tocolor(30, 30, 30, 180),
-		rectangle = {
-			length = 32
-		},
-
-		x = nil,
-		y = nil,
-		tetrominoX = nil,
-		tetrominoY = nil,
-	},
-	renderFunc = false,
-
-	-- these are for animations
-	periodStartTimes = {},
-	highlightedRows = {},
-	hardDropPositions = {},
 }
 
-
 function Drawing:new(o)
-	o = o or {}   -- create object if user does not provide one
+	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
+
+  --o.state = false
+  
+  o.board = {
+    width = 322,
+    height = 642,
+    gridColor = tocolor(255, 100, 255, 100),
+    backgroundColor = tocolor(30, 30, 30, 180),
+    rectangle = {
+      length = 32
+    },
+
+    x = nil,
+    y = nil,
+    tetrominoX = nil,
+    tetrominoY = nil,
+  }
+  
+  o.renderFunc = false
+
+  -- these are for animations
+	o.periodStartTimes = {}
+	o.highlightedRows = {}
+	o.hardDropPositions = {}
   
   self:updateKeyNames()
-  self.keyNamesDescription = self:manualFromKeyNames()
+  o.keyNamesDescription = self:manualFromKeyNames()
 	return o
 end
 
