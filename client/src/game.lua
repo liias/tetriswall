@@ -420,12 +420,20 @@ function Game:spawnById(id)
     local resetKeyName = capitalize(getCommandKeyName(Commands.RESET))
 		outputChatBox("Tetris: GAME OVER! Press ".. resetKeyName .." to restart the game")
     playAudioTheEnd()
-    self:replayFromHistory()
+    
+    if self:isLocal() then
+      -- to be sure we are not recording the replay itself
+      self.recording = false
+      self:saveHistoryToFile()
+    end
+    --self:replayFromHistory()
 		return false
 	end
 
 	self.state.activeTetromino = t
 end
+
+
 
 
 function Game:playHistoryItem(h)
@@ -490,6 +498,31 @@ function Game:replayFromHistory()
 end
 
 
+function Game:saveHistoryToFile()
+  if self.history then
+    local historyAsJson = toJSON(self.history, true)
+
+    local time = getRealTime()
+    local year = 1900+time.year -- since 1900
+
+    local month = time.month+1 -- 0-11
+    local monthday = time.monthday -- 1-31
+
+    local hours = time.hour -- 0-23
+    local minutes = time.minute --0-59
+    local seconds = time.second -- 0-59 (sometimes to 61)
+
+    local timestamp = month .. "-" .. monthday .. "-" .. year .. "-" .. hours .. "-" .. minutes .. "-" .. seconds
+    
+    local filename = "history-" .. timestamp .. ".json"
+    local fileHandle = fileCreate(filename)             -- attempt to create a new file
+    if fileHandle then                                    -- check if the creation succeeded
+      fileWrite(fileHandle, historyAsJson)     -- write a text line
+      fileClose(fileHandle)                             -- close the file once you're done with it
+      log("wrote history to file " .. filename)
+    end
+  end
+end
 
 function Game:giveNewTetromino(resetHeldTetrominoUsed)
 	local nextTetrominoId = table.remove(self.state.nextTetrominoIds, 1)
