@@ -195,6 +195,10 @@ function Game:setShapeAndPosition(rotationIndex, row, column, moveType)
         -- send full grid update once-in-a-while to mitigate desync
         self:sendTetrisUpdateToServer("grid", self.state.grid.rectangles)
       end
+      if getTickCount() - self.lastScoreSync >= 6000 then
+        self.lastScoreSync = now
+        self:sendTetrisUpdateToServer("score", self.state.score, self.state.clearedLines)
+      end
     end
   
     if self.recording then
@@ -304,7 +308,7 @@ function Game:setLevelFromClearedLines()
 	self.state.linesForNextLevel = levelUpdateLines - clearedLines % levelUpdateLines
 	if self.state.level ~= oldLevel then
 		self.state.speed = self:getSpeedForLevel(self.state.level)
-		self:initFallingTimer()
+    self:initFallingTimer()
 	end
 end
 
@@ -389,6 +393,10 @@ function Game:handleLanding()
 end
 
 function Game:initFallingTimer()
+  if self:isRemote() then
+    return
+  end
+  
   self:killFallingTimer()
   
 	local tickFunc = function()
@@ -526,6 +534,11 @@ function Game:holdCurrentTetromino()
     else
       local tetrominoIdHeldBefore = self.state.heldTetrominoId
       self:setHeldTetrominoId(self.state.activeTetromino.id)
+      
+      if self.syncToServer then
+        self:sendTetrisUpdateToServer("hold", self.state.activeTetromino.id)
+      end
+    
       if tetrominoIdHeldBefore then
         self:spawnById(tetrominoIdHeldBefore)
       else
@@ -560,6 +573,8 @@ function Game:reset()
   self.history = {}
   self.historyStartTime = getTickCount()
   self.lastGridSync = 0
+  self.lastScoreSync = 0
+
   
   if self.state.condition == StateConditions.PAUSED then
     self.state.condition = StateConditions.RUNNING
@@ -665,9 +680,17 @@ function Game:initDrawingOnObject(textureName, targetObject)
         local nextTetrominoIds = packet[1]
         self:giveNewTetromino(true)
         self.state.nextTetrominoIds = nextTetrominoIds
+      elseif eventName == "hold" then
+        self:holdCurrentTetromino()
       elseif eventName == "grid" then
         local rectangles = packet[1]
         self.state.grid.rectangles = rectangles
+      elseif eventName == "score" then
+        local score = packet[1]
+        local clearedLines = packet[2]
+        self.state.score = score
+        self.state.clearedLines = clearedLines
+        self:setLevelFromClearedLines()
       end
     end
     
