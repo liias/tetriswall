@@ -1,3 +1,5 @@
+
+
 addEventHandler("onClientResourceStop", resourceRoot,
     function (stoppedRes)
       -- resetting controls and camera just in case if resource was restarted

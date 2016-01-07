@@ -22,7 +22,6 @@ addEvent("onSendMoveToServer", true)
 addEventHandler("onSendMoveToServer", resourceRoot, clientSentMove)
 
 
-
 local function clientSentUpdate(packet)
   local opponent = client
   triggerClientEvent(opponent, "onSendTetrisUpdateToClient", client, packet)

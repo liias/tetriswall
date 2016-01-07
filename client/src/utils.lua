@@ -1,28 +1,28 @@
 -- can use to set class method as an event callback
 function bind(func, ...)
-    if not func then
-        if DEBUG then
-            outputConsole(debug.traceback())
-            outputServerLog(debug.traceback())
-        end
-        error("Bad function pointer @ bind. See console for more details")
+  if not func then
+    if DEBUG then
+        outputConsole(debug.traceback())
+        outputServerLog(debug.traceback())
+    end
+    error("Bad function pointer @ bind. See console for more details")
+  end
+
+  local boundParams = {...}
+  return
+  function(...)
+    local params = {}
+    local boundParamSize = select("#", unpack(boundParams))
+    for i = 1, boundParamSize do
+        params[i] = boundParams[i]
     end
 
-    local boundParams = {...}
-    return
-    function(...)
-        local params = {}
-        local boundParamSize = select("#", unpack(boundParams))
-        for i = 1, boundParamSize do
-            params[i] = boundParams[i]
-        end
-
-        local funcParams = {...}
-        for i = 1, select("#", ...) do
-            params[boundParamSize + i] = funcParams[i]
-        end
-        return func(unpack(params))
+    local funcParams = {...}
+    for i = 1, select("#", ...) do
+        params[boundParamSize + i] = funcParams[i]
     end
+    return func(unpack(params))
+  end
 end
 
 -- like string.format() but with named parameters
@@ -98,6 +98,23 @@ end
 
 function capitalize(s)
   return s:sub(1,1):upper()..s:sub(2)
+end
+
+-- used for filename, so dont use unsupported characters
+function formatTime(time)
+  local year = 1900+time.year -- since 1900
+  local month = time.month+1 -- 0-11
+  local monthday = time.monthday -- 1-31
+  local hours = time.hour -- 0-23
+  local minutes = time.minute --0-59
+  local seconds = time.second -- 0-59 (sometimes to 61)
+  return string.format("%04d-%02d-%02d-%02d-%02d-%02d", year, month, monthday, hours, minutes)
+end
+
+function logTable(t)
+  for k, v in pairs(t) do
+    log(k, v)
+  end
 end
 
 function log(...)  

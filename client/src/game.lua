@@ -498,28 +498,17 @@ function Game:replayFromHistory()
 end
 
 
+
 function Game:saveHistoryToFile()
   if self.history then
     local historyAsJson = toJSON(self.history, true)
-
-    local time = getRealTime()
-    local year = 1900+time.year -- since 1900
-
-    local month = time.month+1 -- 0-11
-    local monthday = time.monthday -- 1-31
-
-    local hours = time.hour -- 0-23
-    local minutes = time.minute --0-59
-    local seconds = time.second -- 0-59 (sometimes to 61)
-
-    local timestamp = month .. "-" .. monthday .. "-" .. year .. "-" .. hours .. "-" .. minutes .. "-" .. seconds
-    
-    local filename = "history-" .. timestamp .. ".json"
-    local fileHandle = fileCreate(filename)             -- attempt to create a new file
-    if fileHandle then                                    -- check if the creation succeeded
-      fileWrite(fileHandle, historyAsJson)     -- write a text line
-      fileClose(fileHandle)                             -- close the file once you're done with it
-      log("wrote history to file " .. filename)
+    local timestamp = formatTime(getRealTime())
+    local filename = "replays/history-" .. timestamp .. ".json"
+    local fileHandle = fileCreate(filename)
+    if fileHandle then
+      fileWrite(fileHandle, historyAsJson)
+      fileClose(fileHandle)
+      log("wrote Tetris replay to file " .. filename)
     end
   end
 end
