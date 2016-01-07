@@ -266,6 +266,14 @@ function Drawing:drawDxRect(length, xOffset, yOffset, color)
 	dxDrawLine(bottomLeft[1], bottomLeft[2], topLeft[1], topLeft[2], color) -- left line
 end
 
+local cachedShapesOutline = {}
+
+function getCachedShapeOutline(shape)
+  if cachedShapesOutline[shape] then
+    return cachedShapesOutline[shape]
+  end
+  return getShapeOutline(shape)
+end
 
 function Drawing:drawShapeOutlineAtOffset(shape, color, xOffset, yOffset)
 	local xOffset = xOffset - 1
@@ -275,8 +283,8 @@ function Drawing:drawShapeOutlineAtOffset(shape, color, xOffset, yOffset)
 		-- dont draw first two rows
 		return
 	end
-	local lines = getShapeOutline(shape)
-    self:drawLines(lines, color, xOffset, yOffset)
+	local lines = getCachedShapeOutline(shape)
+  self:drawLines(lines, color, xOffset, yOffset)
 end
 
 function Drawing:drawLines(lines, color, xOffset, yOffset)
@@ -516,6 +524,7 @@ function initShader(texture, textureName, targetObject)
 	local SHADER_TEXTURE_VAR_NAME = "tetrisTexture"
 
 	local shader, technique = dxCreateShader(SHADER_FILE_PATH, 0, 0, false, "object")
+  
 	if not shader then
 		outputChatBox("Tetris: Could not create shader. Please use debugscript 3")
 	else
