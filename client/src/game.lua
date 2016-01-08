@@ -423,9 +423,12 @@ function Game:spawnById(id)
     playAudioTheEnd()
     
     if self:isLocal() then
+      local wasRecording = self.recording
       -- to be sure we are not recording the replay itself
       self.recording = false
-      self:saveHistoryToFile()
+      if wasRecording then
+        self:saveHistoryToFile()
+      end
     end
     --self:replayFromHistory()
 		return false
@@ -580,18 +583,20 @@ function Game:reset()
   self:initState()
   self:initFallingTimer()
   
-  self.recording = true
+  --self.recording = true
+  self.recording = false
   self.syncToServer = true
   
   self.history = {}
   self.historyStartTime = getTickCount()
   self.lastGridSync = 0
   self.lastScoreSync = 0
-
   
   if self.state.condition == StateConditions.PAUSED then
     self.state.condition = StateConditions.RUNNING
-    startMusic()
+    if self:isLocal() then
+      startMusic()
+    end
   end
   
 	self:addRandomTetrominoIdsToQueue(3)
@@ -618,11 +623,16 @@ function Game:killFallingTimer()
 end
 
 function Game:pause()
-	if self.state.fallingTimer then
-    self.state.condition = StateConditions.PAUSED
+  self.state.condition = StateConditions.PAUSED
+  
+	if self:isLocal() and self.state.fallingTimer then
 		self:killFallingTimer()
     stopMusic()
 	end
+  
+  if self.syncToServer then
+    self:sendTetrisUpdateToServer("pause")
+  end
 end
 
 function Game:isRemote()
@@ -638,6 +648,10 @@ function Game:resume()
   self.state.condition = StateConditions.RUNNING
   if self:isLocal() then
     startMusic()
+  end
+  
+  if self.syncToServer then
+    self:sendTetrisUpdateToServer("resume")
   end
 end
 
@@ -668,15 +682,13 @@ end
 function Game:initDrawingOnObject(textureName, targetObject)
 	self.drawing:initDrawing(textureName, targetObject)
   
-
   if self:isRemote() then
-    log("adding")
+    log("adding remote playfield")
     function serverSentMove(moveState)
       --log("Server sent: " .. moveState[6])
       self:playHistoryItem(moveState)
     end
-    addEventHandler("onSendMoveToClient", localPlayer, serverSentMove)
-    
+    addEventHandler("onSendMoveToClient", localPlayer, serverSentMove)  
     
     function handleUpdate(eventName, packet)
       if eventName == "start" then
@@ -689,6 +701,10 @@ function Game:initDrawingOnObject(textureName, targetObject)
         self.state.condition = StateConditions.RUNNING    
         self.state.nextTetrominoIds = nextTetrominoIds
         self.drawing:startDrawing()
+      elseif eventName == "pause" then
+        self:pause()
+      elseif eventName == "resume" then
+        self:resume()
       elseif eventName == "give" then
         local nextTetrominoIds = packet[1]
         self:giveNewTetromino(true)

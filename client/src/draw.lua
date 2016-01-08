@@ -7,6 +7,7 @@ function Drawing:new(o)
 	setmetatable(o, self)
 	self.__index = self
 
+  o.isDrawing = false
   --o.state = false
   
   o.board = {
@@ -23,6 +24,9 @@ function Drawing:new(o)
     tetrominoX = nil,
     tetrominoY = nil,
   }
+  
+  o.fullWidth = nil
+  o.fullHeight = nil
   
   o.renderFunc = function()
     o:drawCurrentStateOnTarget()
@@ -84,6 +88,15 @@ function Drawing:initDimensions(x, y)
 	self.board.y = y
 	self.board.tetrominoX = self.board.x + 1
 	self.board.tetrominoY = self.board.y + 1
+  
+  self.fullWidth = self.board.x + self.board.width + 200
+  self.fullHeight = self.board.y + self.board.height + 50
+
+  -- for optimization mostly (these are asked on every frame)
+  self.board.scoreX= self.board.x + self.board.width + 10
+  self.board.scoreY = self.board.y + 190
+  self.board.buttonsX = self.board.x + self.board.width + 10
+  self.board.buttonsY = self.board.y + 350
 
 	self.screenWidth, self.screenHeight = guiGetScreenSize()
 end
@@ -153,31 +166,33 @@ function Drawing:drawTextOnTopOfTetromino(xOffset, yOffset, text)
   dxDrawText(text, textX, textY, textX, textY, tocolor(255, 240, 135), 1.5, "default-bold")
 end
 
+-- optimization
+local yellow = tocolor(255,255,0)
+
 function Drawing:drawScore()
-  local x = self.board.x + self.board.width + 10
-	local y = self.board.y + 190
+  local x = self.board.scoreX
+	local y = self.board.scoreY
   
   dxDrawText("Level", x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
   y = y + 20
-  dxDrawText(self.state.level, x, y, x, y, tocolor(255,255,0), 2, "default-bold", "left", "top", false, false, false, true)
+  dxDrawText(self.state.level, x, y, x, y, yellow, 2, "default-bold", "left", "top", false, false, false, true)
 
   y = y + 30
   dxDrawText("Goal", x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
   y = y + 20
-  dxDrawText(self.state.linesForNextLevel, x, y, x, y, tocolor(255,255,0), 2, "default-bold", "left", "top", false, false, false, true)
+  dxDrawText(self.state.linesForNextLevel, x, y, x, y, yellow, 2, "default-bold", "left", "top", false, false, false, true)
 
   y = y + 30
   dxDrawText("Score", x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
   y = y + 20
-  dxDrawText(self.state.score, x, y, x, y, tocolor(255,255,0), 2, "default-bold", "left", "top", false, false, false, true)
+  dxDrawText(self.state.score, x, y, x, y, yellow, 2, "default-bold", "left", "top", false, false, false, true)
 end
 
 function Drawing:drawButtons()
-  local x = self.board.x + self.board.width + 10
-	local y = self.board.y + 350
+  local x = self.board.buttonsX
+	local y = self.board.buttonsY
   
 	dxDrawText(self.keyNamesDescription, x, y, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
-
 
   if self.state.condition == StateConditions.PAUSED then
     dxDrawText("PAUSED", x, y+250, x, y, white, 1.5, "default", "left", "top", false, false, false, true)
@@ -191,27 +206,27 @@ function Drawing:drawGameOver()
 	dxDrawText("Game Over.\nPress " .. self.keyNames.RESET .." to restart.", x, y, x, y, white, 3)
 end
 
-function Drawing:getFullWidth()
-  return self.board.x+self.board.width+200
-end
 
-function Drawing:getFullHeight()
-  return self.board.y+self.board.height+50
-end
+-- optimization
+local backgroundImagePath = ASSETS_IMG .. "grid512x1024.png"
 
 function Drawing:drawBackground()
-  local w = self:getFullWidth()
-  local h = self:getFullHeight()
-  dxDrawRectangle(0, 0, w, h, tocolor(0,0,0), false)
+  -- full black background
+  dxDrawRectangle(0, 0, self.fullWidth, self.fullHeight, tocolor(0,0,0), false)
+  -- grid background
 	dxDrawRectangle(self.board.x, self.board.y, self.board.width, self.board.height, self.board.backgroundColor, false)
-	dxDrawImage(self.board.x, self.board.y, self.board.width, self.board.height, ASSETS_IMG .. "grid322x642.png", 0, 0, 0, self.board.gridColor, false)
+  -- grid
+  drawImage(self.board.x, self.board.y, self.board.width, self.board.height, backgroundImagePath, self.board.gridColor)
 end
 
-function Drawing:drawRectangle(x, y, color, scale, allowOutOfBoard)
-  if not scale then
-    scale = 1
-  end
-	
+function drawImage(x, y, width, height, img, color)
+  dxDrawImageSection(x, y, width, height, 0, 0, width, height, img, 0, 0, 0, color, false)
+end
+
+-- optimization
+local tetrominoRectangleImagePath = ASSETS_IMG .. "tetrominopiece32.png"
+
+function Drawing:drawRectangle(x, y, color, scale, allowOutOfBoard)	
 	y = y-2
 	if not allowOutOfBoard and y < 0 then
 		-- dont draw first two rows
@@ -219,11 +234,14 @@ function Drawing:drawRectangle(x, y, color, scale, allowOutOfBoard)
 	end
 
   local length = self.board.rectangle.length
-  length = length * scale
+  
+  if scale then
+    length = length * scale
+  end
 
-	local rectangleX = self.board.tetrominoX + x*length
-	local rectangleY = self.board.tetrominoY + y*length
-	dxDrawImage(rectangleX, rectangleY, length, length, ASSETS_IMG .. "tetrominopiece32.png", 0, 0, 0, color, false)
+	local rectangleX = self.board.tetrominoX + x * length
+	local rectangleY = self.board.tetrominoY + y * length
+	dxDrawImage(rectangleX, rectangleY, length, length, tetrominoRectangleImagePath, 0, 0, 0, color, false)
 end
 
 function Drawing:drawShapeAtOffset(shape, color, xOffset, yOffset, scale, allowOutOfBoard)
@@ -473,10 +491,7 @@ end
 function Drawing:initDrawing(textureName, targetObject)
 	self:initDimensions(10, 100)
   
-  local w = self:getFullWidth()
-  local h = self:getFullHeight()
-  
-	self.tetrisRenderTarget = dxCreateRenderTarget(w, h, false)
+	self.tetrisRenderTarget = dxCreateRenderTarget(self.fullWidth, self.fullHeight, false)
 	initShader(self.tetrisRenderTarget, textureName, targetObject)
 
 	-- draw come play until tetris has been started
@@ -503,7 +518,10 @@ function Drawing:drawCurrentStateOnTarget()
 end
 
 function Drawing:startDrawing()
-	addEventHandler("onClientRender", root, self.renderFunc)
+  if not self.isDrawing then
+    self.isDrawing = true
+    addEventHandler("onClientRender", root, self.renderFunc)
+  end
 end
 
 function Drawing:drawOnceCurrentStateOrComePlay()
@@ -537,6 +555,7 @@ function Drawing:stopDrawing()
   self:drawOnceCurrentStateOrComePlay()
 	-- engineRemoveShaderFromWorldTexture(shader, SHADER_TEXTURE_VAR_NAME, targetObject)
 	removeEventHandler("onClientRender", root, self.renderFunc)
+  self.isDrawing = false
 end
 
 function Drawing:enableClientRestore()
