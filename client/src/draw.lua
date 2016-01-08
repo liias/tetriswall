@@ -24,15 +24,17 @@ function Drawing:new(o)
     tetrominoY = nil,
   }
   
-  o.renderFunc = false
+  o.renderFunc = function()
+    o:drawCurrentStateOnTarget()
+  end
 
   -- these are for animations
 	o.periodStartTimes = {}
 	o.highlightedRows = {}
 	o.hardDropPositions = {}
   
-  self:updateKeyNames()
-  o.keyNamesDescription = self:manualFromKeyNames()
+  o:updateKeyNames()
+  o.keyNamesDescription = o:manualFromKeyNames()
 	return o
 end
 
@@ -501,10 +503,6 @@ function Drawing:drawCurrentStateOnTarget()
 end
 
 function Drawing:startDrawing()
-	self.renderFunc = function()
-		self:drawCurrentStateOnTarget()
-	end
-
 	addEventHandler("onClientRender", root, self.renderFunc)
 end
 

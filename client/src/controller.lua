@@ -1,4 +1,3 @@
-
 -- Descriptive command names for MTA Binds menu
 Commands = {
   START_STOP = "Start/stop Tetris",
@@ -27,6 +26,13 @@ local DEFAULT_BINDINGS = {
   [Commands.HOLD] = "lshift",
 	[Commands.RESET] = "r",
 	[Commands.TOGGLE_PAUSE] = "l"
+}
+
+
+local DAS_CONFIG = {
+	-- min is 50 ms for setTimer
+	nextAutoRepeatMs = 50,
+	delayAutoRepeatMs = 200
 }
 
 -- dont use it to bind/unbind anything
@@ -74,54 +80,6 @@ function Controller:new(o)
 	return o
 end
 
-CONFIG = {
-	-- min is 50 ms for setTimer
-	nextAutoScrollMs = 50,
-	delayAutoScrollMs = 200
-}
-
-
-
-local GlobalMaps = {
-	gTimers = {},
-	-- needed for setTimer, as real function references would get lost if passed as additional argument to setTimer
-	nameFunctionMap = {}
-}
-
-function repeatFunctionUntilKeyUp(mappingName, endRepeating)
-	if mappingName == nil then
-    log("mappingName is nil")
-    return
-  end
-
-	local timer = GlobalMaps.gTimers[mappingName]
-
-	if endRepeating then
-    if isTimer(timer) then
-      killTimer(timer)
-    end
-    return
-  end
-
-	local fn = GlobalMaps.nameFunctionMap[mappingName]
-	if fn == nil then
-		log("fn is nil for mappingName" .. mappingName)
-		return
-	end
-
-	fn()
-
-	-- if first keystroke, start next ones with a delay
-  local nextCallInMs = CONFIG.delayAutoScrollMs
-  -- else shorter time
-  if isTimer(timer) then
-    nextCallInMs = CONFIG.nextAutoScrollMs
-  end
-
-  --fn = function() log(fnName) end
-  GlobalMaps.gTimers[mappingName] = setTimer(repeatFunctionUntilKeyUp, nextCallInMs, 1, mappingName, false)
-end
-
 function Controller:hardDrop()
 	self.game:hardDrop()
 end
@@ -150,35 +108,86 @@ function Controller:pause()
 	self.game:pause()
 end
 
+function Controller:moveLeft()
+	self.game:moveLeft()
+end
+
+function Controller:moveRight()
+	self.game:moveRight()
+end
+
+function Controller:moveDown()
+	self.game:moveDown()
+end
+  
+local GlobalMaps = {
+	gTimers = {},
+	-- needed for setTimer, as real function references would get lost if passed as additional argument to setTimer
+	nameFunctionMap = {}
+}
+
 -- repeatable functions, used by setTimer
 function Controller:initNameFunctionMap() 
 	GlobalMaps.nameFunctionMap = {
-		[Commands.LEFT] = function() 
-      self.game:moveLeft() 
-    end,
-		[Commands.RIGHT] = function()
-      self.game:moveRight() 
-    end,
-		[Commands.DOWN] = function() 
-      self.game:moveDown() 
-    end
+		[Commands.LEFT] = function() self:moveLeft() end,
+		[Commands.RIGHT] = function() self:moveRight() end,
+		[Commands.DOWN] = function() self:moveDown() end
 	}
 end
 
-function Controller:repeatFunc(command, keyState)
-  repeatFunctionUntilKeyUp(command, keyState == "up") 
+-- if first keystroke, start next ones with a delay, else shorter time
+function getNextCallInMs(alreadyRepeated)
+  if alreadyRepeated then
+    return DAS_CONFIG.nextAutoRepeatMs
+  else
+    return DAS_CONFIG.delayAutoRepeatMs
+  end
 end
-  
+
+function repeatFunctionUntilKeyUp(command, keyState)
+	if command == nil then
+    log("command is nil")
+    return
+  end
+
+	local timer = GlobalMaps.gTimers[command]
+  local alreadyRepeated = timer and isTimer(timer)
+
+	if keyState == "up" then
+    if alreadyRepeated then
+      killTimer(timer)
+    end
+    GlobalMaps.gTimers[command] = nil
+    return
+  end
+
+  local fn = GlobalMaps.nameFunctionMap[command]
+	if fn == nil then
+		log("fn is nil for mappingName" .. command)
+		return
+	end
+
+	fn()
+
+  local nextCallInMs = getNextCallInMs(alreadyRepeated)
+
+  GlobalMaps.gTimers[command] = setTimer(repeatFunctionUntilKeyUp, nextCallInMs, 1, command, keyState)
+end
+
+function handleRepeatingCommand(command)
+  addCommandHandler(command, function(command, keyState) repeatFunctionUntilKeyUp(command, keyState) end)
+end
+
 function Controller:handleCmd(command, methodReference)
   addCommandHandler(command, bind(methodReference, self))
 end
-  
+
 function Controller:bindControls()
 	self:initNameFunctionMap()
   
-  self:handleCmd(Commands.LEFT, self.repeatFunc)
-  self:handleCmd(Commands.RIGHT, self.repeatFunc)
-  self:handleCmd(Commands.DOWN, self.repeatFunc)
+  handleRepeatingCommand(Commands.LEFT)
+  handleRepeatingCommand(Commands.RIGHT)
+  handleRepeatingCommand(Commands.DOWN)
 
   self:handleCmd(Commands.HARD_DROP, self.hardDrop)
   self:handleCmd(Commands.ROTATE_RIGHT, self.rotateRight)

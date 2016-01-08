@@ -245,6 +245,7 @@ end
 function Game:recordMove(moveType)
   local t = self.state.activeTetromino
   local delta = getTickCount()-self.historyStartTime
+
   table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex, moveType})
   --table.insert(self.history, {delta, t.id, t.xOffset, t.yOffset, t.rotationIndex})
 end
@@ -465,16 +466,6 @@ function Game:replayFromHistory()
   log("starting to replay")
   local replayStartTime = getTickCount()
   local i = 0
-  
-  --1 22
-  --2 34
-  --3 37
-  --4 48
-  
-      
-  --... 21, 22, 23, ..., 33, 34, 35, 36, 37, 38, ...
-  -- but do each step only once!
-  
   
   local function renderReplay()
     local delta = getTickCount() - replayStartTime

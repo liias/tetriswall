@@ -101,13 +101,13 @@ end
 
 -- used for filename, so dont use unsupported characters
 function formatTime(time)
-  local year = 1900+time.year -- since 1900
+  local year = 1900 + time.year -- since 1900
   local month = time.month+1 -- 0-11
   local monthday = time.monthday -- 1-31
   local hours = time.hour -- 0-23
   local minutes = time.minute --0-59
   local seconds = time.second -- 0-59 (sometimes to 61)
-  return string.format("%04d-%02d-%02d-%02d-%02d-%02d", year, month, monthday, hours, minutes)
+  return string.format("%04d-%02d-%02d-%02d-%02d-%02d", year, month, monthday, hours, minutes, seconds)
 end
 
 function logTable(t)
